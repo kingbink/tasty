@@ -1,0 +1,34 @@
+<html>
+<head>
+<title>BlindWine</title>
+</head>
+<body>
+<h1>Wine {{ num }}!</h1>
+<form method="POST" action="{{ url_for('rating', user=user, num=num) }}">
+    {{ tasty.csrf_token }}
+    {{ tasty.rating.label }}
+    {{ tasty.rating }}
+    <ul>
+    {% for error in tasty.rating.errors %}
+        <li style="color:red;">{{ error }}</li>
+    {% endfor %}
+    </ul>
+    <input type="submit" value="Submit">
+</form>
+<table>
+    <tr>
+        {% for bn in bl %}
+        <th>
+            <form action="{{ url_for('rating', user=user, num=bn) }}"><input type=submit value={{ bn }}>
+            </form>
+        </th>
+        {% endfor %}
+    </tr>
+    <tr>
+        {% for d in data['scores'].loc[user] %}
+        <th>{{ d }}</th>
+        {% endfor %}
+    </tr>
+</table>
+</body>
+</html>

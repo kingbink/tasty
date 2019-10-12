@@ -1,0 +1,23 @@
+<html>
+    <head>
+        <title>BlindWine</title>
+        <link rel="stylesheet" href="../../static/myyeti.bootstrap.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1" /> 
+    </head>
+    <body>
+        <h1> </h1>
+        <h1>Welcome to Tasty!</h1>
+        
+        <form method="POST" action="{{ url_for('index') }}">
+            {{ user.csrf_token }}
+            {{ user.name.label }}
+            {{ user.name }}
+            <ul>
+                {% for error in user.name.errors %}
+                    <li style="color:red;">{{ error }}</li>
+                {% endfor %}
+            </ul>
+            <input type="submit" value="Enter Name">
+        </user>
+    </body>
+</html>

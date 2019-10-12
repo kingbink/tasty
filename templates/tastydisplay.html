@@ -1,0 +1,20 @@
+<html>
+<head>
+<title>BlindWine</title>
+</head>
+<body>
+<meta http-equiv="refresh" content="8" />
+<h1>Bottles: {{ data['bottles'] }}</h1>
+<h1>Winner: {{ data['scores'].sum().idxmax() }}</h1>
+<h1>Loser: {{ data['scores'].sum().idxmin() }}</h1>
+<h1>Gave most points: {{ data['scores'].sum(axis=1).idxmax() }}</h1>
+<h1>Gave least points: {{ data['scores'].sum(axis=1).idxmin() }}</h1>
+<h1>Ranking: </h1> {{ data['scores'].sum().rank() }}
+<h1>Totals: </h1>
+{{ data['scores'] }}    
+<h1>TasterTotals:</h1> {{ data['scores'].sum() }}
+<h1>Wines Max Rating:</h1> {{ data['scores'].sum(axis=1) }}
+<h1>Wines Min Rating:</h1> {{ data['scores'].sum() }}
+<h1>Tasty Display Rotation</h1>
+</body>
+</html>

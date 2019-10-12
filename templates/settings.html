@@ -1,0 +1,442 @@
+<!doctype html>
+<html>
+  <head lang="en">
+    <meta charset="UTF-8">
+    <title>BlindWine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- styles -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="../../static/wine.bootstrap.css">
+  </head>
+  <body>
+    <div class="container">
+      <div id="root"></div>
+    </div>
+    <!-- scripts -->
+
+    <!-- Reactstrap Required dependencies -->
+    <script type="text/javascript" src="../../static/prop-types.min.js"></script>
+    <script type="text/javascript" src="../../static/react.production.min.js"></script>
+    <script type="text/javascript" src="../../static/react-dom.production.min.js"></script>
+    <!-- Reactstrap Optional dependencies -->
+    <script type="text/javascript" src="../../static/react-transition-group.min.js"></script>
+    <script type="text/javascript" src="../../static/popper.min.js"></script>
+    <script type="text/javascript" src="../../static/react-popper.min.js"></script>
+    <!-- Reactstrap -->
+    <script type="text/javascript" src="../../static/reactstrap.full.min.js"></script>
+    
+    <!-- JQuery for posting -->
+    <script src="../../static/jquery-1.11.0.min.js"></script>
+
+    <!-- babel for converting the script -->
+    <script src="../../static/babel.min.js"></script>
+
+    <script type="text/babel" charset="utf-8">
+
+
+      console.log("Entering Tasting with {{ data['bottles'] }} total bottles");
+
+      // "Import" the components from Reactstrap
+      const {
+        Alert,
+        Badge,
+        Button,
+        ButtonDropdown,
+        DropdownToggle,
+        DropdownMenu,
+        DropdownItem,
+        ButtonToolbar,
+        Card,
+        CardBody,
+        CardHeader,
+        CardText,
+        Col,
+        Collapse,
+        Container,
+        Form,
+        FormGroup,
+        InputGroup,
+        InputGroupAddon,
+        InputGroupText,
+        Input,
+        ListGroup,
+        ListGroupItem,
+        Row,
+        Table,
+      } = Reactstrap;
+      
+      class BottleCount extends React.Component{
+        constructor (props) {
+          super(props);
+          this.handleChange = this.handleChange.bind(this);
+          this.handleSubmit = this.handleSubmit.bind(this);
+        }
+        
+        handleChange(e) {
+          this.props.doChange(e.target.value);
+        }
+        
+        handleSubmit(e) {
+          this.props.doSubmit();
+          e.preventDefault();
+        }
+        
+        render() {
+          return (
+            <div>
+              <h3>Bottle Count</h3>
+              <InputGroup>
+                <InputGroupAddon addonType="prepend">
+                  <InputGroupText>Current Bottles: {this.props.curBottleCount}</InputGroupText>
+                </InputGroupAddon>                
+                <Input type="text" value={this.props.bottleCountValue} onChange={this.handleChange}
+                />
+                <InputGroupAddon addonType="append">
+                  <Button color="primary" onClick={() => this.props.doSubmit(this.handleSubmit)}>Update</Button>
+                </InputGroupAddon>
+              </InputGroup>
+              <br />
+            </div>
+          );
+        };
+      };
+      
+      class BottleNameGroup extends React.Component{
+        render() {
+          let wineCntlist = Array(this.props.numWines).fill().map((_,i) => {
+            return <BottleNameRow
+                     wineNum={i}
+                     wineName={this.props.wineNames[i]}
+                     bearerList={this.props.bearerList}
+                     bearerName={this.props.bearerNameList[i]}
+                     doClick={this.props.doClick}
+                    />
+          });
+          return (
+            <div>
+            <h3>Wine num to wine desc and bearer</h3>
+            <ListGroup>
+              {wineCntlist}
+            </ListGroup>
+            </div>
+          )
+        }
+      };
+      
+      class BottleNameRow extends React.Component{
+        constructor (props) {
+          super(props);
+          this.state = {
+            value: this.props.wineName,
+            dropdownOpen: false,
+            bearerName: this.props.bearerName === '' ? 'DropName' : this.props.bearerName,
+          };
+          
+          this.onChange = this.onChange.bind(this);
+          this.onSubmit = this.onSubmit.bind(this);
+        }
+        
+        onChange(event) {
+          this.setState({value: event.target.value});
+        }
+        
+        onSubmit(wineNum, value, name) {
+          this.setState({bearerName: name})
+          $.post( "{{ url_for('settings') }}",
+                 {
+                  "wineNameNum": wineNum,
+                  "wineNameBearer": name,
+                  "value": this.state.value
+                 })
+
+        }
+        
+        render() {
+          return(
+            <div>
+              <InputGroup>
+                <InputGroupAddon addonType="prepend">
+                  <InputGroupText>Wine {this.props.wineNum + 1}</InputGroupText>
+                </InputGroupAddon>                
+                <Input type="text" value={this.state.value} onChange={this.onChange}/>
+                <InputGroupAddon addonType="append">
+                  <DropName
+                    bearerNames={this.props.bearerList}
+                    bearerName={this.state.bearerName}
+                    submitName={(name) => this.onSubmit(this.props.wineNum, this.state.value, name)}
+                  />
+                </InputGroupAddon>
+              </InputGroup>
+            </div>
+          )
+        };
+      };
+      
+      class DropName extends React.Component{
+        constructor (props) {
+          super(props);
+          this.state = {dropdownOpen: false};
+          
+          this.toggle = this.toggle.bind(this);
+          this.handleSubmit = this.handleSubmit.bind(this);
+        }
+          
+        toggle() {
+          this.setState({
+            dropdownOpen: !this.state.dropdownOpen
+          });
+        }
+        
+        handleSubmit(e) {
+          this.props.submitName();
+          e.preventDefault();
+        }
+        
+        render() {
+          let names = this.props.bearerNames.map((name) => {
+            return (
+              <DropdownItem onClick={() => this.props.submitName(name)}>{name}</DropdownItem>
+            )
+          });
+          return (
+            <ButtonDropdown isOpen={this.state.dropdownOpen} toggle={this.toggle}>
+              <DropdownToggle color="primary" caret>
+                {this.props.bearerName}
+              </DropdownToggle>
+              <DropdownMenu>
+                {names}
+              </DropdownMenu>
+            </ButtonDropdown>
+          )
+        };
+      };
+      
+      class ScoreGroup extends React.Component{
+        render () {
+          if (this.props.scoreList != "empty") {
+            const nameList = Object.keys(JSON.parse(this.props.scoreList));
+            let scoreRow = Object.values(JSON.parse(this.props.scoreList)).map((score,i) => {
+                return (
+                  <tr>
+                    <td>{nameList[i]}</td>
+                    <ScoreRowData rowScoreList={Object.values(score)} />
+                  </tr>
+                )
+              })
+  
+            return (
+              <div>
+                <h3>Summary of Scores</h3>
+                <Table striped>
+                  <tbody>
+                      {scoreRow}
+                  </tbody>
+                </Table>
+              </div>
+            )
+          } else {
+            return (
+              <div>
+                <h3>No Scores</h3>
+              </div>
+            )
+          }
+        }
+      }
+      
+      class ScoreRowData extends React.Component{          
+        render () {
+
+          let sc = this.props.rowScoreList.map((value,i) => {
+            let scoreColor = "";
+            if (value == "0") {
+              scoreColor = "danger";
+            } else if (value <= "4") {
+              scoreColor = "secondary";
+            } else {
+              scoreColor = "primary";
+            }
+            return (
+              <td><Badge color={scoreColor}>{value}</Badge></td>
+            )})
+          
+          return (
+            <div>
+              {sc}
+            </div>
+          )
+        }
+      }
+      
+      class DoneGroup extends React.Component{
+        render() {
+          const done = Object.values(JSON.parse(this.props.doneList))
+          let doneNameList = Object.keys(JSON.parse(this.props.doneList)).map((name,i) => {
+            return (
+              <DoneRow name={name} done={done[i]} />
+            )
+          })
+          return (
+            <div>
+              <h3>Done Status</h3>
+              <ListGroup>
+                {doneNameList}
+              </ListGroup>
+            </div>
+          )
+        }
+      }
+      
+      class DoneRow extends React.Component{
+        constructor (props) {
+          super(props);
+          
+          this.state = {
+            doneState: this.props.done == "1" ? false : true
+          }
+          
+          this.doClick = this.doClick.bind(this);
+        }
+        
+        doClick() {
+          this.setState({
+            doneState: !this.state.doneState,
+          })
+          $.post( "{{ url_for('settings') }}",
+                 {"doneToggle": this.state.doneState,
+                  "doneName": this.props.name})
+
+        }
+        
+        render() {
+          return (
+            <ListGroupItem>
+              <Row>
+                <Col xs="3">
+                  <Button color={this.state.doneState === false ? "success" : "danger"} onClick={this.doClick}>
+                    {this.state.doneState === false ? "done" : "drinking"}
+                  </Button>
+                </Col>
+                <Col xs="auto">
+                  {this.props.name}
+                </Col>
+              </Row>
+            </ListGroupItem>
+          )
+        }
+      }
+      
+      class AuditDone extends React.Component{
+        constructor (props) {
+          super(props);
+          
+          this.state = {
+            auditDone: this.props.auditDone,
+          }
+          
+          this.handleSubmit = this.handleSubmit.bind(this);
+        }
+                
+        handleSubmit(e) {
+          this.setState({
+            auditDone: !this.state.auditDone,
+          })
+
+          $.post( "{{ url_for('settings') }}", {"auditDone": this.state.auditDone})
+        }
+        
+        render() {
+          return (
+            <div>
+              <br />
+              <Container>
+                <Row>
+                  <Col xs="4"></Col>
+                  <Col xs="auto">
+                    <Button size="lg"
+                      color={this.state.auditDone === false ? "danger" : "success"}
+                      onClick={() => this.handleSubmit()}
+                      >
+                        {this.state.auditDone === false ? "Submit Audit Done" : "Win Lose Displayed"}
+                    </Button>
+                  </Col>
+                  <Col xs="4"></Col>
+                </Row>
+              </Container>
+            </div>
+          );
+        };
+      };
+
+
+      class SettingsPage extends React.Component{
+        constructor (props) {
+          super(props);
+          
+          this.state = {
+            curBottleCount: {{ data['bottles'] }},
+            bottleCountValue: '',
+            wineNameList: {{ data['winenames'].values.tolist()|tojson }},
+            bearerNameList: {{ data['bearernames'].values.tolist()|tojson }},
+            nameList: {{ data['scores'].index.tolist()|tojson }},
+            doneList: {{ data['donelistjson']|tojson }},
+            scoreList: {{ data['scoresjson']|tojson }},
+            auditDone: {{ data['auditdone']|tojson }},
+          };
+
+          this.bottleChange = this.bottleChange.bind(this);
+          this.bottleSubmit = this.bottleSubmit.bind(this);
+        }
+        
+        
+        bottleChange(bottleCountValue) {
+          this.setState({bottleCountValue});
+        }
+
+        bottleSubmit(event) {
+          const newbcv = parseInt(this.state.bottleCountValue);
+          $.post( "{{ url_for('settings') }}", {"bottleCount": newbcv})
+          this.setState({
+            curBottleCount: newbcv,
+            bottleCountValue: ''});
+        }
+
+
+        render() {
+          return (
+            <div>
+              <h1>Settings Page</h1>
+              <br />
+              <BottleCount
+                curBottleCount={this.state.curBottleCount}
+                bottleCountValue={this.state.bottleCountValue}
+                doChange={this.bottleChange}
+                doSubmit={this.bottleSubmit}
+              />
+              <br />
+              <BottleNameGroup
+                numWines={this.state.curBottleCount}
+                wineNames={this.state.wineNameList}
+                bearerList={this.state.nameList}
+                bearerNameList={this.state.bearerNameList}
+              />
+              <br />
+              <ScoreGroup scoreList={this.state.scoreList} />
+              <br />
+              <DoneGroup doneList={this.state.doneList} />
+              <br />
+              <AuditDone auditDone={this.state.auditDone} />
+            </div>
+          )
+        };
+      };
+
+      // Render a Reactstrap Button element onto root
+      ReactDOM.render(
+        React.createElement(SettingsPage, null),
+        document.getElementById('root')
+      );
+
+    </script>
+  </body>
+</html>

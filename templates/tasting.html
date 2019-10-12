@@ -1,0 +1,356 @@
+<!doctype html>
+<html>
+  <head lang="en">
+    <meta charset="UTF-8">
+    <title>BlindWine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- styles -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="../../static/wine.bootstrap.css">
+    <style>
+      body {
+        background-image:url(../../static/tasty_bkg1.png);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="root"></div>
+    </div>
+    <!-- scripts -->
+
+    <!-- Reactstrap Required dependencies -->
+    <script type="text/javascript" src="../../static/prop-types.min.js"></script>
+    <script type="text/javascript" src="../../static/react.production.min.js"></script>
+    <script type="text/javascript" src="../../static/react-dom.production.min.js"></script>
+    <!-- Reactstrap Optional dependencies -->
+    <script type="text/javascript" src="../../static/react-transition-group.min.js"></script>
+    <script type="text/javascript" src="../../static/popper.min.js"></script>
+    <script type="text/javascript" src="../../static/react-popper.min.js"></script>
+    <!-- Reactstrap -->
+    <script type="text/javascript" src="../../static/reactstrap.full.min.js"></script>
+    
+    <!-- JQuery for posting -->
+    <script src="../../static/jquery-1.11.0.min.js"></script>
+
+    <!-- babel for converting the script -->
+    <script src="../../static/babel.min.js"></script>
+
+    <script type="text/babel" charset="utf-8">
+
+
+      console.log("Entering Tasting with {{ data['bottles'] }} total bottles");
+
+      // "Import" the components from Reactstrap
+      const {
+        Alert,
+        Badge,
+        Button,
+        ButtonToolbar,
+        Card,
+        CardImg,
+        CardBody,
+        CardHeader,
+        CardText,
+        Container,
+        Col,
+        Collapse,
+        Form,
+        FormGroup,
+        ListGroup,
+        ListGroupItem,
+        Media,
+        Row,
+      } = Reactstrap;
+
+      class WineHeader extends React.Component {
+        render() {
+          return (
+            <div>
+              <Container>
+                <Row>
+                  <Col xs="9"></Col>
+                  <Col xs="3">
+                    <Card>
+                      <CardImg src="../../static/Tasty.png" />
+                    </Card>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col xs="2"></Col>
+                  <Col xs="auto">
+                    <h3>Hello {this.props.username}</h3>
+                  </Col>
+                  <Col xs="2"></Col>
+                </Row>
+                <Row>
+                  <Col xs="6">
+                    <h6>Tasted: {this.props.tasted}</h6>
+                  </Col>
+                  <Col xs="6">
+                    <h6>Liked: {this.props.liked}</h6>
+                  </Col>
+                </Row>
+              </Container>
+            </div>
+          )
+        }
+      };
+
+      class WineFooter extends React.Component {
+        render() {
+          return (
+            <div>
+              <br />
+              <Container>
+                <Row>
+                  <Col xs="2"></Col>
+                  <Col xs="auto">
+                    <Button size="lg"
+                      active={this.props.done === 0}
+                      disabled={this.props.done === 1}
+                      color={this.props.done === 0 ? "primary" : "disabled"}
+                      onClick={() => this.props.doClick()}
+                      >
+                        {this.props.done === 0 ? "Submit Final Scores" : "Thank you for Drinking"}
+                    </Button>
+                  </Col>
+                  <Col xs="2"></Col>
+                </Row>
+              </Container>
+            </div>
+          )
+        }
+      };
+
+      class ScoreButton extends React.Component {
+        render() {
+          return (
+            <Button size="sm" 
+              color={this.props.chosenScore === this.props.value ? "success" : "link"}
+              disabled={this.props.done === 1}
+              onClick={() => this.props.doClick(this.props.value)}
+              >
+                {this.props.value}
+            </Button>
+          )
+        }
+      };
+
+      class WineScore extends React.Component {
+        constructor (props) {
+          super(props);
+
+          this.state = {
+            expanded: false,
+          };
+
+          this.onClick = this.onClick.bind(this);
+        }
+
+        onClick() {
+          this.setState({ expanded: !this.state.expanded });
+        }
+
+        render() {
+
+          let scores = Array(8).fill().map((_, i) => {
+            return (
+                    <ScoreButton
+                      value={i+1}
+                      chosenScore={this.props.currentScore}
+                      done={this.props.done}
+                      doClick={(score) => this.props.doClick(this.props.wineNum, score)}/
+                    >);
+            });
+          scores.push(
+                      <ScoreButton
+                      value="Mine"
+                      done={this.props.done}
+                      doClick={(score) => this.props.doClick(this.props.wineNum, score)}/
+                    >);
+
+          let activeClassName = "";
+          let popColor = "secondary";
+          if (this.state.expanded) {
+            activeClassName = "active";
+            popColor = "dark";
+          }
+          
+          let scoreColor = "";
+          if (this.props.currentScore == "0") {
+            scoreColor = "danger";
+          } else if (this.props.currentScore <= "4") {
+            scoreColor = "secondary";
+          } else {
+            scoreColor = "primary";
+          }
+          
+          return (
+            <ListGroupItem>
+              <ListGroup>
+                <ListGroupItem color={popColor} onClick={this.onClick}>
+                  <Row>
+                    <Col xs="4"><h6>{this.props.wineNameArray[this.props.wineNum]}</h6></Col>
+                    <Col xs="4"><Badge color="success">{this.props.wineNum === this.props.myWine ? "MyWine" : ""}</Badge></Col>
+                    <Col xs="4"><Badge size="lg" color={scoreColor}>{this.props.currentScore}</Badge></Col>
+                  </Row>
+                </ListGroupItem>
+                <Collapse isOpen={this.state.expanded}>
+                  <ListGroupItem>
+                    <ButtonToolbar>
+                      {scores}
+                    </ButtonToolbar>
+                  </ListGroupItem>
+                </Collapse>
+              </ListGroup>
+            </ListGroupItem>
+          )
+        };
+      };
+
+      class WineList extends React.Component {
+        render() {
+          if ( this.props.gameState == 'winLose' ) {
+            var wineNameArray = {{ data['winenames'].values.tolist()|tojson }};
+            console.log("winLose")
+          } else {
+            var wineNameArray = new Array();
+            for ( var i = 0; i < this.props.numWines; i++ ) {
+              wineNameArray[i] = "Cervesa/Salsa " + (i+1);
+            };
+          };
+          
+          console.log(wineNameArray)
+          console.log(this.props.scores)
+          
+          let wineScores = Array(this.props.numWines).fill().map((_,i) => {
+            return <WineScore wineNum={i} wineNameArray={wineNameArray} currentScore={this.props.scores[i]} myWine={this.props.myWine} done={this.props.done} doClick={this.props.doClick}/>
+          });
+          return (
+            <ListGroup>
+              {wineScores}
+            </ListGroup>
+          )
+        }
+      };
+
+      class UserPage extends React.Component {
+        constructor (props) {
+          super(props);
+          
+          this.state = {
+            // This currentScore object is where the scores get filled at the beginning. This might
+            // be where you would populate it from the stored information in Python.
+            bottleCount: {{ data['bottles'] }},
+            currentScore: {{ data['scores'].loc[user].values.tolist() }},
+            done: {{ data['donelist'].loc[user] }},
+            allDoneReady: 0,
+            myWine: {{ data['myguess'][user] }},
+            
+            gameState: {{ data['state'].value|tojson }},
+
+            // These items are computed, so they may not belong in state, but it was an easy place
+            // to put them.
+            tasted: 0,
+            liked: 0,
+          };
+          console.log(this.state.gameState)
+          console.log( this.state.currentScore );
+
+          this.setScore = this.setScore.bind(this);
+          this.setDone = this.setDone.bind(this);
+        }
+
+        // setScore gets called way down on each button, and it gets called with the wine number and
+        // the score written on the button. This updates the state, which causes things to be
+        // redrawn, and make it look like it's been selected. It also is where you would attach any
+        // external calls to ajax, or a post call, or whatever.
+        setScore(wineNum, score) {
+          // Set the score for this press.
+          if (score == 'Mine') {
+            console.log("my wine");
+            this.state.myWine = wineNum;
+            this.state.currentScore = this.state.currentScore;
+          } else {
+            this.state.currentScore[wineNum] = score;
+            // Compute some "stats"
+            this.state.tasted = 0;
+            this.state.liked = 0;
+            var notAllScored = 0;
+            this.state.currentScore.forEach((score) => {
+              if (score !== 0) {
+                this.state.tasted += 1;
+              } else {
+                notAllScored = 1;
+              }
+              if (score > 4) {
+                this.state.liked += 1;
+              }
+            });
+          }
+ 
+
+
+          
+          if (notAllScored == 0) {
+            this.state.allDoneReady = 1;
+          }
+
+          // Reset the "state", which will force a redraw.
+          this.setState({
+            currentScore: [...this.state.currentScore],
+            tasted: this.state.tasted,
+            liked: this.state.liked,
+            allDoneReady: this.state.allDoneReady,
+          });
+          
+          console.log(this.state.done)
+          
+          // Do whatever you want right here. The current scores just changed.
+          $.post( "{{ url_for('rating', user=user) }}", {"score": score,"wine": wineNum})
+
+        }
+        
+        setDone() {
+          
+          this.state.done = 1;
+          
+          this.setState({
+            done: this.state.done,
+          })
+          
+          $.post( "{{ url_for('rating', user=user) }}", {"done": this.state.done})
+          
+        }
+
+        render() {
+          let allDoneDisplay;
+          if ((this.state.done == 1) || (this.state.allDoneReady == 1)) {
+            allDoneDisplay = <WineFooter done={this.state.done} doClick={this.setDone}/>
+          } else {
+            allDoneDisplay = <Alert color="dark">Keep Drinking, More Wines to Rate</Alert>;
+          }
+          
+          
+          return (
+            <div>
+              <WineHeader username={"{{user}}"} tasted={this.state.tasted} liked={this.state.liked}/>
+              <WineList numWines={this.state.bottleCount} scores={this.state.currentScore} done={this.state.done} myWine={this.state.myWine} gameState={this.state.gameState} doClick={this.setScore}/>
+              {allDoneDisplay}
+              <br />
+              <br />
+            </div>
+          )
+        };
+      };
+
+      // Render a Reactstrap Button element onto root
+      ReactDOM.render(
+        React.createElement(UserPage, null),
+        document.getElementById('root')
+      );
+
+    </script>
+  </body>
+</html>

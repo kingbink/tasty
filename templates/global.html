@@ -1,0 +1,906 @@
+<!doctype html>
+<html>
+  <head lang="en">
+    <meta charset="UTF-8">
+    <title>BlindWine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- styles -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="../../static/wine.bootstrap.css">
+    <style>
+      body {
+        background-image:url(../../static/interlaced.png);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="root"></div>
+    </div>
+    <!-- scripts -->
+
+    <!-- Reactstrap Required dependencies -->
+    <script type="text/javascript" src="../../static/prop-types.min.js"></script>
+    <script type="text/javascript" src="../../static/react.production.min.js"></script>
+    <script type="text/javascript" src="../../static/react-dom.production.min.js"></script>
+    <!-- Reactstrap Optional dependencies -->
+    <script type="text/javascript" src="../../static/react-transition-group.min.js"></script>
+    <script type="text/javascript" src="../../static/popper.min.js"></script>
+    <script type="text/javascript" src="../../static/react-popper.min.js"></script>
+    <!-- Reactstrap -->
+    <script type="text/javascript" src="../../static/reactstrap.full.min.js"></script>
+    
+    <!-- JQuery for posting -->
+    <script src="../../static/jquery-1.11.0.min.js"></script>
+
+    <!-- babel for converting the script -->
+    <script src="../../static/babel.min.js"></script>
+    
+    <!-- chart js2 -->
+    <script type="text/javascript" src="https://unpkg.com/chart.js@2.1.4/dist/Chart.bundle.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/react-chartjs-2@2.7.4/dist/react-chartjs-2.min.js"></script>
+    
+    <!-- SocketIO -->
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+
+
+    <script type="text/babel" charset="utf-8">
+
+      console.log("Entering Global View");
+
+      // "Import" the components from Reactstrap
+      const {
+        Alert,
+        Badge,
+        Button,
+        ButtonDropdown,
+        DropdownToggle,
+        DropdownMenu,
+        DropdownItem,
+        ButtonToolbar,
+        Card,
+        CardImg,
+        CardBody,
+        CardHeader,
+        CardText,
+        Col,
+        Collapse,
+        Container,
+        Form,
+        FormGroup,
+        InputGroup,
+        InputGroupAddon,
+        InputGroupText,
+        Input,
+        Jumbotron,
+        ListGroup,
+        ListGroupItem,
+        Row,
+      } = Reactstrap;
+      
+      // "Import from Chart js
+      const {
+        Bar,
+        Bubble,
+        Doughnut,
+        HorizontalBar,
+        Polar,
+        Radar,
+      } = ReactChartjs2;
+    
+    const options = {
+      legend: {
+        labels: {
+          fontSize: 30
+        }
+      },
+      scales: {
+        xAxes: [
+          {
+            display: true,
+            gridLines: {
+              display: false
+            },
+            labels: {
+              show: true
+            },
+            ticks: {
+              fontSize: 30
+            }
+          }
+        ],
+        yAxes: [
+          {
+            display: false,
+            gridLines: {
+              display: false
+            },
+            labels: {
+              show: false
+            }
+          }
+        ],
+      }
+    };
+    
+    const optionsH = {
+      legend: {
+        labels: {
+          fontSize: 30
+        }
+      },
+      scales: {
+        xAxes: [
+          {
+            display: true,
+            gridLines: {
+              display: true
+            },
+            labels: {
+              show: true
+            },
+            ticks: {
+              beginAtZero: true,
+              fontSize: 30
+            }
+          }
+        ],
+        yAxes: [
+          {
+            display: true,
+            gridLines: {
+              display: false
+            },
+            labels: {
+              show: true
+            },
+            ticks: {
+              fontSize: 30
+            }
+          }
+        ],
+      }
+    };
+    
+    const optionsV = {
+      legend: {
+        labels: {
+          fontSize: 30
+        }
+      },
+      scales: {
+        xAxes: [
+          {
+            display: true,
+            gridLines: {
+              display: false
+            },
+            labels: {
+              show: true
+            },
+            ticks: {
+              beginAtZero: true,
+              fontSize: 30
+            }
+          }
+        ],
+        yAxes: [
+          {
+            display: true,
+            gridLines: {
+              display: false
+            },
+            labels: {
+              show: true
+            },
+            ticks: {
+              beginAtZero: false,
+              fontSize: 30
+            }
+          }
+        ],
+      }
+    };
+    
+    const optionsFull = {
+      legend: {
+        labels: {
+          fontSize: 30
+        }
+      },
+      scales: {
+        xAxes: [
+          {
+            display: true,
+            gridLines: {
+              display: false
+            },
+            labels: {
+              show: true
+            },
+            ticks: {
+              beginAtZero: true,
+              fontSize: 20
+            }
+          }
+        ],
+        yAxes: [
+          {
+            display: true,
+            gridLines: {
+              display: false
+            },
+            labels: {
+              show: true
+            },
+            ticks: {
+              beginAtZero: true,
+              fontSize: 30
+            }
+          }
+        ],
+      }
+    };
+        
+    const optionsNone = {
+      legend: {
+        display: false
+      },
+      title: {
+        display: false
+      },
+      layout: {
+        padding: {
+            left: 50,
+            right: 50,
+            top: 50,
+            bottom: 50
+        }
+      },
+      scales: {
+        xAxes: [
+          {
+            display: false,
+            gridLines: {
+              display: false
+            },
+            labels: {
+              show: false
+            },
+            ticks: {
+              beginAtZero: true
+            }
+          }
+        ],
+        yAxes: [
+          {
+            display: false,
+            gridLines: {
+              display: false
+            },
+            labels: {
+              show: false
+            },
+            ticks: {
+              beginAtZero: true
+            }
+          }
+        ],
+      }
+    };
+    
+    const optionsDonut = {
+      legend: {
+        labels: {
+          fontSize: 30
+        }
+      }
+    };
+    
+    const optionsPolar = {
+      legend: {
+        labels: {
+          fontSize: 30
+        },
+        display: false
+      },
+      scale: {
+        gridLines: {
+          display: false,
+        },
+        ticks: {
+          display: false,
+          beginAtZero:true,
+          fontSize: 12
+        },
+        pointLabels: {
+          fontSize: 30,
+          fontColor: '#395462'
+        },
+        reverse: false
+      },
+      elements: {
+        point: {
+          radius: 10
+        }
+      }
+    };
+    
+    // var ColorsList = ['#325D88', '#8E8C84', '#93C54B', '#29ABE0', '#F47C3C', '#d9534f'];
+    //var ColorsList = ['rgb(50, 93, 136, 0.6)', 'rgb(142, 140, 132, 0.6)', 'rgb(147, 197, 75, 0.6)', 'rgb(41, 171, 224, 0.6)', 'rgb(244, 124, 60, 0.6)', 'rgb(217, 83, 79, 0.6)']
+    var ColorsList = ['rgb(112, 18, 23, 0.6)', 'rgb(57, 84, 98, 0.6)', 'rgb(125, 161, 177, 0.6)', 'rgb(204, 224, 221, 0.6)', 'rgb(15, 22, 23, 0.6']
+    //var ColorsListRing = ['rgb(217, 83, 79, 0.1)', 'rgb(50, 93, 136, 0.1)', 'rgb(142, 140, 132, 0.1)', 'rgb(147, 197, 75, 0.1)', 'rgb(41, 171, 224, 0.1)', 'rgb(244, 124, 60, 0.1)']
+    let polarColors = Array({{ data['mywinescore'].keys()|tojson }}.length).fill().map((_,i) =>{
+      return ColorsList[i % 6]
+    })
+    let bubbleColors = Array(400).fill().map((_,i) =>{
+      return ColorsList[Math.floor((i + Math.random() * 6) % 6)]
+    })
+    //let bubbleColorsRing = Array(400).fill().map((_,i) =>{
+    //  return ColorsListRing[Math.floor((i + Math.random() * 6) % 6)]
+    //})
+
+    class globalView extends React.Component {
+      constructor (props) {
+        //console.log({{ data['bubplot']|tojson }})
+        console.log({{ data['bubguess']|tojson }})
+        super(props);
+        
+        this.state = {
+          page: 0,
+          gameState: {{ data['state'].value|tojson }},
+          winedata : {
+            labels: {{ data['scores'].columns.tolist()|tojson }},
+            datasets: [
+              {
+                label: 'Wine Totals',
+                backgroundColor: '#701217',
+                borderColor: '#701217',
+                borderWidth: 1,
+                data: {{ data['scores'].sum().tolist()|tojson }}
+              }
+            ]
+          },
+          winedataNames : {
+            labels: {{ data['scores'].columns.tolist()|tojson }},
+            datasets: [
+              {
+                label: 'Wine Totals Names',
+                backgroundColor: '#701217',
+                borderColor: '#701217',
+                borderWidth: 1,
+                data: {{ data['scores'].sum().tolist()|tojson }}
+              }
+            ]
+          },
+          donutData: {
+            labels: [
+              'Bad',
+              'Good',
+              'Unk'
+            ],
+            datasets: [{
+              data: [0, 0, 100],
+              backgroundColor: [
+                '#395462',
+                '#701217',
+                '#CCE0DD'
+             ],
+            }]
+          },
+          drinkerCnt: 4,
+          badBuddies: {'jeff': ['amy', 'ryan', 'roger'], 'shawn': ['amy', 'ryan', 'roger']},
+          goodBuddies: {'brad': ['heather', 'jason'], 'jack': ['amy', 'ryan', 'roger']},
+          drinkerTotals: {
+            labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+            datasets: [
+              {
+                label: 'Drinkers Totals',
+                backgroundColor: '#7DA1B1',
+                borderColor: '#395462',
+                borderWidth: 1,
+                hoverBackgroundColor: 'rgba(255,99,132,0.4)',
+                hoverBorderColor: 'rgba(255,99,132,1)',
+                data: [65, 59, 80, 81, 56, 55, 40]
+              }
+            ],
+          },
+          missRaters: {
+            labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+            datasets: [
+              {
+                label: 'SHAME WEB',
+                backgroundColor: '#395462',
+                borderColor: '#7DA1B1',
+                borderJoinStyle: 'round',
+                borderWidth: 4,
+                data: [65, 59, 80, 81, 56, 55, 40]
+              }
+            ],
+          },
+          tieWinner: {{ data['tie']['winner'] }},
+          tieLoser: {{ data['tie']['loser'] }},
+          winnerWineList: {{ data['winnerwines']|tojson }},
+          winnerNameList:  {{ data['winnernames']|tojson }},
+          myWineScore: {
+            labels: {{ data['mywinescore'].keys()|tojson }},
+            datasets: [
+              {
+                label: 'How You Rated Your Own Wine',
+                backgroundColor: '#395462',
+                borderColor: '#395462',
+                borderWidth: 1,
+                hoverBackgroundColor: 'rgba(255,0,0,0.4)',
+                hoverBorderColor: 'rgba(255,0,0,1)',
+                data: {{ data['mywinescore'].values()|tojson }}
+              }
+            ]
+          },
+          radarWineMine: {
+            labels: ['Eating', 'Drinking', 'Sleeping', 'Designing', 'Coding', 'Cycling', 'Running'],
+            datasets: [
+              {
+                label: 'My First dataset',
+                backgroundColor: 'rgba(179,181,198,0.2)',
+                borderColor: 'rgba(179,181,198,1)',
+                pointBackgroundColor: 'rgba(179,181,198,1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgba(179,181,198,1)',
+                data: [65, 59, 90, 81, 56, 55, 40]
+              },
+              {
+                label: 'My Second dataset',
+                backgroundColor: 'rgba(255,99,132,0.2)',
+                borderColor: 'rgba(255,99,132,1)',
+                pointBackgroundColor: 'rgba(255,99,132,1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgba(255,99,132,1)',
+                data: [28, 48, 40, 19, 96, 27, 100]
+              }
+            ]
+          },
+          polarWineMine: {
+            datasets: [{
+              data: {{ data['mywinescore'].values()|tojson }},
+              backgroundColor: polarColors,
+              label: 'How I rated my wine' // for legend
+            }],
+            labels: {{ data['mywinescore'].keys()|tojson }}
+          },
+          bubbleWines: {
+            labels: ['January'],
+            datasets: [
+              {
+                label: '',
+                //fill: true,
+                //lineTension: 0.1,
+                backgroundColor: bubbleColors, // 'rgba(75,192,192,0.4)',
+                //borderColor: bubbleColorsRing,
+                //borderCapStyle: 'butt',
+                //borderDash: [],
+                //borderDashOffset: 0.0,
+                //borderJoinStyle: 'miter',
+                //borderWidth: 3,
+                //pointBorderColor: 'rgba(75,192,192,1)',
+                //pointBackgroundColor: '#fff',
+                //pointBorderWidth: 1,
+                //pointHoverRadius: 5,
+                //pointHoverBackgroundColor: 'rgba(75,192,192,1)',
+                //pointHoverBorderColor: 'rgba(220,220,220,1)',
+                //pointHoverBorderWidth: 2,
+                //pointRadius: 1,
+                //pointHitRadius: 10,
+                data: {{ data['bubplot']|tojson }}
+              }
+            ]
+          },
+          guessWines: {
+            labels: ['Wine #1','Wine #2','Wine #3','Wine #4','Wine #5'],
+            datasets: [
+              {
+                label: 'My Wine Guess',
+                type: 'bubble',
+                backgroundColor: bubbleColors,
+                data: {{ data['bubguess']|tojson }}
+              },
+              {
+                data: [0,0,0,0,0],
+                type: 'bar',
+                label: ['Wine #1','Wine #2','Wine #3','Wine #4','Wine #5']
+              }
+            ]
+          },
+          drinkersPlaying: {
+            labels: {{ data['myguess'].keys()|tojson }},
+            datasets: [
+              {
+                label: '',
+                backgroundColor: '#395462',
+                borderColor: '#7DA1B1',
+                borderJoinStyle: 'round',
+                borderWidth: 4,
+                data: {{ data['myguess'].values()|tojson }}
+              }
+            ],
+          }
+        }
+        
+        this.socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+        
+            // Event handler for new connections.
+            // The callback function is invoked when a connection with the
+            // server is established.
+            this.socket.on('connect', function() {
+                console.log("connected");
+            });
+
+            // Event handler for server sent data.
+            // The callback function is invoked whenever the server emits data
+            // to the client. The data is then displayed in the "Received"
+            // section of the page.
+            this.socket.on('my_response', (msg) => {
+                // console.log(msg.bubplot)
+                this.updateData(msg);
+              }
+            );
+
+        
+        this.nextPage = this.nextPage.bind(this);
+        this.updateData = this.updateData.bind(this);
+        
+        setInterval(this.nextPage, 22 * 1000);
+      };
+      
+      nextPage () {
+        if (this.state.gameState == 'welcome') {
+          this.setState({page: (this.state.page + 1) % 2 });
+        } else if (this.state.gameState == 'tasting') {
+          this.setState({page: (this.state.page + 1) % 6 });
+        } else if (this.state.gameState == 'audit') {
+          this.setState({page: (this.state.page + 1) % 5 });
+        } else if ((this.state.gameState == 'winLose') && (this.state.tieWinner === 1) && (this.state.tieLoser === 1)) {
+          this.setState({page: (this.state.page + 1) % 21 });
+        } else if ((this.state.gameState == 'winLose') && (this.state.tieLoser === 1)) {
+          var skipvalue = 0;
+          const skiplist = [0];
+          if (skiplist.includes(this.state.page)) {
+            skipvalue = 2;
+          }
+          this.setState({page: (this.state.page + 1 + skipvalue) % 21 });
+        } else if ((this.state.gameState == 'winLose') && (this.state.tieWinner === 1)) {
+          var skipvalue = 0;
+          const skiplist = [6];
+          if (skiplist.includes(this.state.page)) {
+            skipvalue = 2;
+          }
+          this.setState({page: (this.state.page + 1 + skipvalue) % 21 });
+        } else if (this.state.gameState == 'winLose') {
+          var skipvalue = 0;
+          const skiplist = [0,6];
+          if (skiplist.includes(this.state.page)) {
+            skipvalue = 2;
+          }
+          this.setState({page: (this.state.page + 1 + skipvalue) % 21 });
+        }
+      }
+      
+      updateData(data) {
+        console.log(Object.keys(data.myguess))
+        let scores = JSON.parse(data.scores)
+        let totals = JSON.parse(data.drinkertotals)
+        if (data.state === "winLose") {
+          this.setState({ page: 0 })
+        }
+        
+        //var ColorsListRing = ['rgb(217, 83, 79, 0.3)', 'rgb(50, 93, 136, 0.3)', 'rgb(142, 140, 132, 0.3)', 'rgb(147, 197, 75, 0.3)', 'rgb(41, 171, 224, 0.3)', 'rgb(244, 124, 60, 0.3)']
+        let bubbleColors = Array(400).fill().map((_,i) =>{
+          return ColorsList[Math.floor((i + Math.random() * 6) % 6)]
+        })
+        let bubbleColorsRing = Array(400).fill().map((_,i) =>{
+          return ColorsList[Math.floor((i + Math.random() * 6) % 6)]
+        })
+
+        this.setState({
+          gameState: data.state,
+          drinkerCnt: data.drinkercnt,
+          winedata: {...this.state.winedata,
+            labels: Object.keys(scores),
+            datasets: [
+              {...this.state.winedata.datasets[0],
+              data: Object.values(scores)}
+            ]
+          },
+          winedataNames: {...this.state.winedataNames,
+            labels: Object.values(JSON.parse(data.winenames)),
+            datasets: [
+              {...this.state.winedataNames.datasets[0],
+              data: Object.values(scores)}
+            ]
+          },
+          donutData: {...this.state.donutData,
+            datasets: [
+              {...this.state.donutData.datasets[0],
+              data: [
+                     data.complete.bad,
+                     data.complete.good,
+                     data.complete.unknown,
+                     ]
+              }
+            ]
+          },
+          drinkerTotals: {...this.state.drinkerTotals,
+            labels: Object.keys(totals),
+            datasets: [
+              {...this.state.drinkerTotals.datasets[0],
+                data: Object.values(totals)}
+            ]
+          },
+          missRaters: {...this.state.missRaters,
+            labels: Object.keys(data.missraters),
+            datasets: [
+              {...this.state.missRaters.datasets[0],
+                data: Object.values(data.missraters)}
+            ]
+          },
+          badBuddies: data.badbuddies,
+          goodBuddies: data.goodbuddies,
+          tieWinner: data.tie.winner,
+          tieLoser: data.tie.loser,
+          winnerWineList: data.winnerwines,
+          winnerNameList: data.winnernames,
+          myWineScore: {...this.state.myWineScore,
+            labels: Object.keys(data.mywinescore),
+            datasets: [
+              {...this.state.myWineScore.datasets[0],
+              data: Object.values(data.mywinescore)}
+            ]
+          },
+          polarWineMine : {...this.state.polarWineMine,
+            labels: Object.keys(data.mywinescore),
+            datasets: [
+               {...this.state.polarWineMine.datasets[0],
+               data: Object.values(data.mywinescore)}
+            ]
+          },
+          bubbleWines : {...this.state.bubbleWines,
+            datasets: [
+               {...this.state.bubbleWines.datasets[0],
+               backgroundColor: bubbleColors,
+               //borderColor: bubbleColorsRing,
+               data: data.bubplot}
+            ]
+          },
+          guessWines : {...this.state.guessWines,
+            datasets: [
+               {...this.state.guessWines.datasets[0],
+               backgroundColor: bubbleColors,
+               //borderColor: bubbleColorsRing,
+               data: data.bubguess}
+            ]
+          },
+          drinkersPlaying : {...this.state.drinkersPlaying,
+            labels: Object.keys(data.myguess),
+            datasets: [
+              {...this.state.drinkersPlaying.datasets[0],
+              data: Object.values(data.myguess)
+              }
+            ]
+          }
+        });
+        //this.nextPage();
+      };
+      
+      render() {
+        let results;
+        if (this.state.gameState == 'welcome') {
+          return (
+            <div>
+              <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
+              <h1>Welcome to Blind Tasty</h1>
+              <br />
+              <h2>http://{{ myip }}:5000</h2>
+              <br />
+              <h3>Open a browser on your phone and login with your name</h3>
+              <Radar data={this.state.drinkersPlaying} options={optionsPolar} redraw/>
+              </Container>
+            </div>
+          )
+        } else if (this.state.gameState == 'tasting') {
+          return (
+            <div>
+              <Collapse isOpen={this.state.page === 0}>
+              <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
+                <Doughnut data={this.state.donutData} options={optionsDonut} />
+              </Container>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 1}>
+              <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
+                <h2>SHAME WEB</h2>
+                <Radar data={this.state.missRaters} options={optionsPolar} redraw/>
+              </Container>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 2}>
+              <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
+                <h2>Bad Drinking Buddies</h2>
+                <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
+              </Container>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 3}>
+              <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
+                <h2>Good Drinking Buddies</h2>
+                <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
+              </Container>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 4}>
+              <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
+                <Bubble data={this.state.bubbleWines} options={optionsNone} />
+              </Container>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 5}>
+              <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
+                <Bubble data={this.state.guessWines} options={options} />
+              </Container>
+              </Collapse>
+            </div>
+          )
+        } else if (this.state.gameState == 'audit') {
+          return (
+            <div>
+              <Collapse isOpen={this.state.page === 0}>
+                <Bar data={this.state.winedata} options={optionsFull}/>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 1}>
+                <Doughnut data={this.state.donutData} options={optionsDonut} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 2}>
+                <HorizontalBar data={this.state.drinkerTotals} options={optionsH}/>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 3}>
+                <h2>Bad Drinking Buddies</h2>
+                <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 4}>
+                <h2>Good Drinking Buddies</h2>
+                <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
+              </Collapse>
+            </div>
+          )
+        } else if (this.state.gameState == 'winLose') {
+          return (
+            <div>
+              <Collapse isOpen={this.state.page === 0}>
+                <h1 className="display-1">And the Winners are...</h1>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 1}>
+                <h1 className="display-2">There is a Tie</h1>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 2}>
+                  <h1 className="display-1">{this.state.winnerNameList.slice(-4,-3)}</h1>
+                  <p className="lead">4th Place</p>
+                  <hr className="my-2" />
+                  <p className="display-4">{this.state.winnerWineList.slice(-4,-3)}</p>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 3}>
+                  <h1 className="display-1">{this.state.winnerNameList.slice(-3,-2)}</h1>
+                  <p className="lead">3rd Place</p>
+                  <hr className="my-2" />
+                  <p className="display-4">{this.state.winnerWineList.slice(-3,-2)}</p>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 4}>
+                  <h1 className="display-1">{this.state.winnerNameList.slice(-2,-1)}</h1>
+                  <p className="lead">2nd Place</p>
+                  <hr className="my-2" />
+                  <p className="display-4">{this.state.winnerWineList.slice(-2,-1)}</p>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 5}>
+                  <h1 className="display-1">{this.state.winnerNameList.slice(-1)}</h1>
+                  <p className="lead">WINNER</p>
+                  <hr className="my-2" />
+                  <p className="display-4">{this.state.winnerWineList.slice(-1)}</p>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 6}>
+                <h1 className="display-1">And the Losers are...</h1>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 7}>
+                <h1 className="display-2">There is a Tie</h1>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 8}>
+                <Jumbotron>
+                  <h1 className="display-1">{this.state.winnerNameList.slice(1,2)}</h1>
+                  <p className="lead">2nd Worst Place</p>
+                  <hr className="my-2" />
+                  <p className="display-4">{this.state.winnerWineList.slice(1, 2)}</p>
+                </Jumbotron>              </Collapse>
+              <Collapse isOpen={this.state.page === 9}>
+                <Jumbotron>
+                  <h1 className="display-1">{this.state.winnerNameList.slice(0, 1)}</h1>
+                  <p className="lead">THE SHAME BOTTLE</p>
+                  <hr className="my-2" />
+                  <p className="display-4">{this.state.winnerWineList.slice(0, 1)}</p>
+                </Jumbotron>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 10}>
+                <Bar data={this.state.winedataNames} options={optionsFull} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 11}>
+                <Bar data={this.state.winedataNames} options={optionsFull} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 12}>
+                <Bar data={this.state.winedataNames} options={optionsFull} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 13}>
+                <HorizontalBar data={this.state.drinkerTotals} options={optionsH} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 14}>
+                <HorizontalBar data={this.state.drinkerTotals} options={optionsH} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 15}>
+                <h2>Good Drinking Buddies</h2>
+                <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 16}>
+                <h2>Bad Drinking Buddies</h2>
+                <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 17}>
+                <h2>Good Drinking Buddies</h2>
+                <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 18}>
+                <Bar data={this.state.myWineScore} options={optionsFull} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 19}>
+                <Bar data={this.state.myWineScore} options={optionsFull} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 20}>
+                <Bar data={this.state.myWineScore} options={optionsFull} />
+              </Collapse>
+            </div>
+          )
+        }
+      };
+    };
+    
+    class BuddyGroups extends React.Component {
+        render() {
+          // let drinkerList = Array(this.props.drinkerCnt).fill().map((_,i) => {
+          let drinkerList = Object.keys(this.props.buddies).map((i,j) => {
+            // console.log(this.props.buddies);
+            return <BuddyRow
+                     drinkerName={i}
+                     buddyList={this.props.buddies[i].join(" --- ")}
+                     goodbad={this.props.gb}
+                    />
+          });
+          return (
+            <ListGroup>
+              {drinkerList}
+            </ListGroup>
+          )
+        }
+      };
+      
+      class BuddyRow extends React.Component {
+        render() {
+          return (
+            <div>
+              <ListGroupItem>
+                <h3><Badge color={this.props.goodbad === "0" ? "danger" : "success"}>{this.props.drinkerName}:</Badge> {this.props.buddyList}</h3>
+              </ListGroupItem>
+            </div>
+          )
+        }
+      };
+
+
+      // Render a Reactstrap Button element onto root
+      ReactDOM.render(
+        React.createElement(globalView, null),
+        document.getElementById('root')
+      );
+
+    </script>
+  </body>
+</html>

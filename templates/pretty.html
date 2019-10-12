@@ -1,0 +1,211 @@
+<!doctype html>
+<html>
+  <head lang="en">
+    <meta charset="UTF-8">
+    <title>BlindWine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- styles -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="../../static/bootstrap.min.css">
+  </head>
+  <body>
+    <div class="container">
+      <div id="root"></div>
+    </div>
+    <!-- scripts -->
+
+    <!-- Reactstrap Required dependencies -->
+    <script type="text/javascript" src="../../static/prop-types.min.js"></script>
+    <script type="text/javascript" src="../../static/react.production.min.js"></script>
+    <script type="text/javascript" src="../../static/react-dom.production.min.js"></script>
+    <!-- Reactstrap Optional dependencies -->
+    <script type="text/javascript" src="../../static/react-transition-group.min.js"></script>
+    <script type="text/javascript" src="../../static/popper.min.js"></script>
+    <script type="text/javascript" src="../../static/react-popper.min.js"></script>
+    <!-- Reactstrap -->
+    <script type="text/javascript" src="../../static/reactstrap.full.min.js"></script>
+    
+    <!-- JQuery for posting -->
+    <script src="../../static/jquery-1.11.0.min.js"></script>
+
+    <!-- babel for converting the script -->
+    <script src="../../static/babel.min.js"></script>
+    
+    <!-- chart js2 -->
+    <script type="text/javascript" src="https://unpkg.com/chart.js@2.1.4/dist/Chart.bundle.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/react-chartjs-2@2.7.4/dist/react-chartjs-2.min.js"></script>
+    
+    <!-- SocketIO -->
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+
+
+    <script type="text/babel" charset="utf-8">
+
+      console.log("Entering Pretty");
+
+      // "Import" the components from Reactstrap
+      const {
+        Alert,
+        Badge,
+        Button,
+        ButtonDropdown,
+        DropdownToggle,
+        DropdownMenu,
+        DropdownItem,
+        ButtonToolbar,
+        Card,
+        CardBody,
+        CardHeader,
+        CardText,
+        Col,
+        Collapse,
+        Form,
+        FormGroup,
+        InputGroup,
+        InputGroupAddon,
+        InputGroupText,
+        Input,
+        ListGroup,
+        ListGroupItem,
+        Row,
+      } = Reactstrap;
+      
+      // "Import from Chart js
+      const {
+        Bar,
+        Doughnut,
+      } = ReactChartjs2;
+
+    class MyComponent extends React.Component {
+      constructor (props) {
+        super(props);
+        
+        this.state = {
+          page: 1,
+          winedata : {
+            labels: ['a','b','v','c'],
+            datasets: [
+              {
+                label: 'My First dataset',
+                backgroundColor: 'rgba(255,99,132,0.2)',
+                borderColor: 'rgba(255,99,132,1)',
+                borderWidth: 1,
+                hoverBackgroundColor: 'rgba(255,99,132,0.4)',
+                hoverBorderColor: 'rgba(255,99,132,1)',
+                data: {{ data['scores'].sum().tolist()|tojson }}
+              }
+            ]
+          },
+          donutData: {
+            	labels: [
+		'Bad',
+		'Good',
+		'Unk'
+	],
+	datasets: [{
+		data: [0, 0, 100],
+		backgroundColor: [
+		'#FF6384',
+		'#36A2EB',
+		'#FFCE56'
+		],
+		hoverBackgroundColor: [
+		'#FF6384',
+		'#36A2EB',
+		'#FFCE56'
+		]
+	}]
+          }
+        }
+        
+        this.socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+        
+            // Event handler for new connections.
+            // The callback function is invoked when a connection with the
+            // server is established.
+            this.socket.on('connect', function() {
+                console.log("connected");
+            });
+
+            // Event handler for server sent data.
+            // The callback function is invoked whenever the server emits data
+            // to the client. The data is then displayed in the "Received"
+            // section of the page.
+            this.socket.on('my_response', (msg) => {
+                console.log(msg)
+                this.updateData(msg);
+              }
+            );
+
+        
+        this.nextPage = this.nextPage.bind(this);
+        this.updateData = this.updateData.bind(this);
+        
+        setInterval(this.nextPage, 2000);
+      };
+      
+      nextPage () {
+        this.setState({page: (this.state.page + 1) % 2 });
+        this.updateGraphs();
+      };
+      
+      updateData(data) {
+        console.log(data);
+        let scores = JSON.parse(data.scores)
+        this.setState({
+          winedata: {...this.state.winedata,
+            labels: Object.keys(scores),
+            datasets: [
+              {...this.state.winedata.datasets[0],
+              data: Object.values(scores)}
+            ]
+          },
+          donutData: {...this.state.donutData,
+            datasets: [
+              {...this.state.donutData.datasets[0],
+              data: [
+                     data.complete.bad,
+                     data.complete.good,
+                     data.complete.unknown,
+                     ]}
+            ]
+          },
+        });
+        //this.nextPage();
+      };
+      
+      barGraphChartRef = {};
+      render() {
+        
+        let barGraph =
+          <Bar
+            data={this.state.winedata}
+            reference={(reference) => this.barGraphChartRef = reference}
+          />
+          this.updateGraphs = () => {
+            console.log(this.barGraphChartRef)
+          this.barGraphChartRef.update();
+        };
+        return (
+          <div>
+          <Collapse isOpen={this.state.page === 0}>
+           {barGraph}
+          </Collapse>
+          <Collapse isOpen={this.state.page === 1}>
+            <Doughnut data={this.state.donutData} />
+          </Collapse>
+          </div>
+        )
+      }
+    };
+
+
+      // Render a Reactstrap Button element onto root
+      ReactDOM.render(
+        React.createElement(MyComponent, null),
+        document.getElementById('root')
+      );
+
+    </script>
+  </body>
+</html>

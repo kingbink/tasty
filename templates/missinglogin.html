@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head lang="en">
+    <meta charset="UTF-8">
+    <title>BlindWine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- styles -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="../../static/bootstrap.min.css">
+  </head>
+  <body>
+    <h1>{{ user }} doesn't exist</h1>
+    <button type="button" onclick="window.location.href='{{ url_for( 'index', user=None ) }}';">
+      Enter New Name
+    </button>
+ </body>
+</html>
