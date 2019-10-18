@@ -7,17 +7,18 @@
     <body>
         <h1> </h1>
         <h1>Welcome to Tasty!</h1>
-        
+        {% for error in form.name.errors %}
+            <li style="color:red;">{{ error }}</li>
+        {% endfor %}
         <form method="POST" action="{{ url_for('index') }}">
-            {{ user.csrf_token }}
-            {{ user.name.label }}
-            {{ user.name }}
-            <ul>
-                {% for error in user.name.errors %}
-                    <li style="color:red;">{{ error }}</li>
-                {% endfor %}
-            </ul>
-            <input type="submit" value="Enter Name">
-        </user>
+            {{ form.csrf_token }}
+            {{ form.name.label }}
+            {{ form.name }}<br>
+            
+            {{ form.bottle.label }}
+            {{ form.bottle }}<br>
+            
+            {{ form.submit }}
+        </form>
     </body>
 </html>

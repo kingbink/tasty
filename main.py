@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, RadioField, IntegerField
+from wtforms import StringField, SelectField, RadioField, IntegerField, SubmitField
 import numpy as np
 import os
 import pandas as pd
@@ -38,10 +38,16 @@ from settings import secret_key, bottles
 # game = Game()
 
 class ParticipantForm(FlaskForm):
-    name = StringField('name',
+    name = StringField('  Name  ',
                            validators=[InputRequired('A name is required!'),
                                        Length(min=2, max=40,
                                               message='Must be between 2 and 40 characters.')])
+    bottle = StringField('  Bottle  ',
+                           validators=[InputRequired('A bottle is required!'),
+                                       Length(min=2, max=40,
+                                              message='Must be between 2 and 40 characters.')])
+    submit = SubmitField("  Enter  ")
+
     
 class MyBottleForm(FlaskForm):
     name = StringField('name',
@@ -97,6 +103,7 @@ else:
     data['bottles'] = bottles
     data['state'] = Game.WelcomeState
     data['winenames'] = pd.Series('unk', index=w)
+    data['bottletoname'] = {}
     data['bearernames'] = pd.Series('', index=w)
     data['auditdone'] = False
     data['winnernames'] = ['brian', 'mona']
@@ -149,11 +156,12 @@ def settings():
         winename = request.form.get('value')
         if winename:
             data['winenames'][int(winenum)] = str(winename)
+            data['bearernames'][int(winenum)] = data['bottletoname'][winename]
             save_csv()
         
-        winenamebearer = request.form.get('wineNameBearer')
-        if winenamebearer:
-            data['bearernames'][int(winenum)] = str(winenamebearer)
+        # winenamebearer = request.form.get('wineNameBearer')
+        # if winenamebearer:
+        #     data['bearernames'][int(winenum)] = str(winenamebearer)
             
     donetoggle = request.form.get('doneToggle')
     donename = request.form.get('doneName')
@@ -181,9 +189,10 @@ def settings():
 def index():
     global data
     
-    user = ParticipantForm()
-    if user.validate_on_submit():
-        name = str(user.name.data).upper()
+    form = ParticipantForm()
+    if form.validate_on_submit():
+        name = str(form.name.data).upper()
+        bottle = str(form.bottle.data).strip()
         if len(data['scores']) == 1 and data['scores'].index == 'mrmagoo':
             data['scores'] = data['scores'].drop(index='mrmagoo')
             data['donelist'] = data['donelist'].drop(index='mrmagoo')
@@ -195,10 +204,11 @@ def index():
             data['scores'] = data['scores'].append(newd)
             data['donelist'][name] = 0
             data['myguess'][name] = 100
+            data['bottletoname'][bottle] = name
             save_csv()
-            #return redirect(url_for('rating', user=name))
-            return redirect(url_for('mybottle', user=name))
-    return render_template('login.html', user=user)
+            return redirect(url_for('rating', user=name))
+            #return redirect(url_for('mybottle', user=name))
+    return render_template('login.html', form=form)
 
 
 @app.route('/mybottle/<user>', methods=['GET', 'POST'])
@@ -207,7 +217,7 @@ def mybottle(user=None):
     mybottle = MyBottleForm()
     if mybottle.validate_on_submit():
         pass
-    return render_template('mybottle.html', user='user')
+    return render_template('mybottle.html', mybottle=mybottle, user=user)
 
 @app.route('/rating/<user>', methods=['GET', 'POST'])
 def rating(user=None):
@@ -288,7 +298,8 @@ def results():
 def save_csv():
     global data
     print("save_csv start")
-    print(data['myguess'])
+    #print(data['myguess'])
+    print(data['bottletoname'])
     
     # process stuff
     if (len(data['scores'].index) > 2):    
@@ -490,6 +501,7 @@ def sendUpdate():
         "winnerwines": data['winnerwines'],
         "mywinescore": data['mywinescore'],
         "winenames": data['winenames'].to_json(),
+        "bottletoname": data['bottletoname'],
         "bubplot": data['bubplot'],
         "myguess": data['myguess'],
         "bubguess": data['bubguess']

@@ -109,6 +109,7 @@
                      wineName={this.props.wineNames[i]}
                      bearerList={this.props.bearerList}
                      bearerName={this.props.bearerNameList[i]}
+                     bottleNames={this.props.bottleNames}
                      doClick={this.props.doClick}
                     />
           });
@@ -127,9 +128,10 @@
         constructor (props) {
           super(props);
           this.state = {
-            value: this.props.wineName,
+            //value: this.props.wineName,
             dropdownOpen: false,
             bearerName: this.props.bearerName === '' ? 'DropName' : this.props.bearerName,
+            wineName: this.props.wineName === '' ? 'Tasty' : this.props.wineName
           };
           
           this.onChange = this.onChange.bind(this);
@@ -141,33 +143,34 @@
         }
         
         onSubmit(wineNum, value, name) {
-          this.setState({bearerName: name})
+          this.setState({wineName: name})
           $.post( "{{ url_for('settings') }}",
                  {
                   "wineNameNum": wineNum,
-                  "wineNameBearer": name,
-                  "value": this.state.value
+                  //"wineNameBearer": name,
+                  "value": name
                  })
 
         }
         
         render() {
           return(
-            <div>
-              <InputGroup>
-                <InputGroupAddon addonType="prepend">
-                  <InputGroupText>Wine {this.props.wineNum + 1}</InputGroupText>
-                </InputGroupAddon>                
-                <Input type="text" value={this.state.value} onChange={this.onChange}/>
-                <InputGroupAddon addonType="append">
+            <ListGroupItem>
+              <Row>
+                <Col xs="4">
+                  Wine {this.props.wineNum + 1}
+                </Col>
+                <Col xs="8">
                   <DropName
                     bearerNames={this.props.bearerList}
                     bearerName={this.state.bearerName}
+                    bottleNames={this.props.bottleNames}
+                    wineName={this.state.wineName}
                     submitName={(name) => this.onSubmit(this.props.wineNum, this.state.value, name)}
                   />
-                </InputGroupAddon>
-              </InputGroup>
-            </div>
+                </Col>
+              </Row>
+            </ListGroupItem>
           )
         };
       };
@@ -193,7 +196,7 @@
         }
         
         render() {
-          let names = this.props.bearerNames.map((name) => {
+          let names = this.props.bottleNames.map((name) => {
             return (
               <DropdownItem onClick={() => this.props.submitName(name)}>{name}</DropdownItem>
             )
@@ -201,7 +204,7 @@
           return (
             <ButtonDropdown isOpen={this.state.dropdownOpen} toggle={this.toggle}>
               <DropdownToggle color="primary" caret>
-                {this.props.bearerName}
+                {this.props.wineName}
               </DropdownToggle>
               <DropdownMenu>
                 {names}
@@ -378,6 +381,7 @@
             bottleCountValue: '',
             wineNameList: {{ data['winenames'].values.tolist()|tojson }},
             bearerNameList: {{ data['bearernames'].values.tolist()|tojson }},
+            bottleNames: {{ data['bottletoname'].keys()|tojson }},
             nameList: {{ data['scores'].index.tolist()|tojson }},
             doneList: {{ data['donelistjson']|tojson }},
             scoreList: {{ data['scoresjson']|tojson }},
@@ -419,6 +423,7 @@
                 wineNames={this.state.wineNameList}
                 bearerList={this.state.nameList}
                 bearerNameList={this.state.bearerNameList}
+                bottleNames={this.state.bottleNames}
               />
               <br />
               <ScoreGroup scoreList={this.state.scoreList} />
