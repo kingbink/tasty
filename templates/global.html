@@ -551,9 +551,11 @@
         this.updateData = this.updateData.bind(this);
         
         setInterval(this.nextPage, 22 * 1000);
+        setInterval(function(){ window.scrollBy(0,1); }, 25);
       };
       
       nextPage () {
+        window.scrollTo(0,0);
         if (this.state.gameState == 'welcome') {
           this.setState({page: (this.state.page + 1) % 2 });
         } else if (this.state.gameState == 'tasting') {
@@ -691,7 +693,6 @@
         });
         //this.nextPage();
       };
-      
       render() {
         let results;
         if (this.state.gameState == 'welcome') {
@@ -817,6 +818,7 @@
                 <Jumbotron>
                   <h1 className="display-1">{this.state.winnerNameList.slice(0, 1)}</h1>
                   <p className="lead">THE SHAME BOTTLE</p>
+                  <p className="lead">Take your bottle with you</p>
                   <hr className="my-2" />
                   <p className="display-4">{this.state.winnerWineList.slice(0, 1)}</p>
                 </Jumbotron>
