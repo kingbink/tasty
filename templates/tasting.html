@@ -176,6 +176,9 @@
             activeClassName = "active";
             popColor = "dark";
           }
+          if (this.props.gameState == 'winLose' && this.props.wineNum === this.props.myReal) {
+            popColor = "primary";
+          }
           
           let scoreColor = "";
           if (this.props.currentScore == "0") {
@@ -225,7 +228,14 @@
           console.log(this.props.scores)
           
           let wineScores = Array(this.props.numWines).fill().map((_,i) => {
-            return <WineScore wineNum={i} wineNameArray={wineNameArray} currentScore={this.props.scores[i]} myWine={this.props.myWine} done={this.props.done} doClick={this.props.doClick}/>
+            return <WineScore wineNum={i}
+              wineNameArray={wineNameArray}
+              currentScore={this.props.scores[i]}
+              myWine={this.props.myWine}
+              myReal={this.props.myReal}
+              gameState={this.props.gameState}
+              done={this.props.done}
+              doClick={this.props.doClick}/>
           });
           return (
             <ListGroup>
@@ -247,6 +257,7 @@
             done: {{ data['donelist'].loc[user] }},
             allDoneReady: 0,
             myWine: {{ data['myguess'][user] }},
+            myReal: {{ data['myreal'][user] }},
             
             gameState: {{ data['state'].value|tojson }},
 
@@ -289,9 +300,6 @@
               }
             });
           }
- 
-
-
           
           if (notAllScored == 0) {
             this.state.allDoneReady = 1;
@@ -323,6 +331,7 @@
           $.post( "{{ url_for('rating', user=user) }}", {"done": this.state.done})
           
         }
+        
 
         render() {
           let allDoneDisplay;
@@ -336,7 +345,13 @@
           return (
             <div>
               <WineHeader username={"{{user}}"} tasted={this.state.tasted} liked={this.state.liked}/>
-              <WineList numWines={this.state.bottleCount} scores={this.state.currentScore} done={this.state.done} myWine={this.state.myWine} gameState={this.state.gameState} doClick={this.setScore}/>
+              <WineList numWines={this.state.bottleCount}
+                scores={this.state.currentScore}
+                done={this.state.done}
+                myWine={this.state.myWine}
+                myReal={this.state.myReal}
+                gameState={this.state.gameState}
+                doClick={this.setScore}/>
               {allDoneDisplay}
               <br />
               <br />

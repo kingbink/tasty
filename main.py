@@ -112,6 +112,7 @@ else:
     data['scoresjson'] = 'empty'
     data['mywinescore'] = {}
     data['myguess'] = {}
+    data['myreal'] = {}
     data['complete'] = {}
     data['complete']['good'] = 0
     data['complete']['bad'] = 0
@@ -126,6 +127,7 @@ else:
     data['mywinescore'] = {}
     data['bubplot'] = [{'x':1, 'y':1, 'r':0}]
     data['bubguess'] = [{'x':1, 'y':1, 'r':0}]
+    
 
 
 @app.route('/settings', methods=['GET', 'POST'])
@@ -157,6 +159,7 @@ def settings():
         if winename:
             data['winenames'][int(winenum)] = str(winename)
             data['bearernames'][int(winenum)] = data['bottletoname'][winename]
+            data['myreal'][data['bottletoname'][winename]] = int(winenum)
             save_csv()
         
         # winenamebearer = request.form.get('wineNameBearer')
@@ -204,6 +207,7 @@ def index():
             data['scores'] = data['scores'].append(newd)
             data['donelist'][name] = 0
             data['myguess'][name] = 100
+            data['myreal'][name] = 100
             data['bottletoname'][bottle] = name
             save_csv()
             return redirect(url_for('rating', user=name))
