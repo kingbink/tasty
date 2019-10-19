@@ -32,6 +32,9 @@
     
     <!-- JQuery for posting -->
     <script src="../../static/jquery-1.11.0.min.js"></script>
+    
+    <!-- SocketIO -->
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
 
     <!-- babel for converting the script -->
     <script src="../../static/babel.min.js"></script>
@@ -112,7 +115,7 @@
                       color={this.props.done === 0 ? "primary" : "disabled"}
                       onClick={() => this.props.doClick()}
                       >
-                        {this.props.done === 0 ? "Submit Final Scores" : "Thank you for Drinking"}
+                        {this.props.done === 0 ? "Submit Final Scores" : "Thank you for " + this.props.eatordrink}
                     </Button>
                   </Col>
                   <Col xs="2"></Col>
@@ -195,7 +198,7 @@
                 <ListGroupItem color={popColor} onClick={this.onClick}>
                   <Row>
                     <Col xs="4"><h6>{this.props.wineNameArray[this.props.wineNum]}</h6></Col>
-                    <Col xs="4"><Badge color="success">{this.props.wineNum === this.props.myWine ? "MyWineGuess" : ""}</Badge></Col>
+                    <Col xs="4"><Badge color="success">{this.props.wineNum === this.props.myWine ? "MyGuess" : ""}</Badge></Col>
                     <Col xs="4"><Badge size="lg" color={scoreColor}>{this.props.currentScore}</Badge></Col>
                   </Row>
                 </ListGroupItem>
@@ -216,19 +219,20 @@
         render() {
           if ( this.props.gameState == 'winLose' ) {
             var wineNameArray = {{ data['winenames'].values.tolist()|tojson }};
-            console.log("winLose")
           } else {
             var wineNameArray = new Array();
             for ( var i = 0; i < this.props.numWines; i++ ) {
-              wineNameArray[i] = "Cervesa/Salsa " + (i+1);
+              wineNameArray[i] = this.props.foodorbooze + " " + (i+1);
             };
           };
           
           console.log(wineNameArray)
           console.log(this.props.scores)
+          console.log(this.props.foodorbooze)
           
           let wineScores = Array(this.props.numWines).fill().map((_,i) => {
-            return <WineScore wineNum={i}
+            return <WineScore
+              wineNum={i}
               wineNameArray={wineNameArray}
               currentScore={this.props.scores[i]}
               myWine={this.props.myWine}
@@ -252,6 +256,9 @@
           this.state = {
             // This currentScore object is where the scores get filled at the beginning. This might
             // be where you would populate it from the stored information in Python.
+            eatordrink: {{ data['drinkwine']['eatordrink']|tojson }},
+            boxorbottle: {{ data['drinkwine']['boxorbottle']|tojson }},
+            foodorbooze: {{ data['drinkwine']['foodorbooze']|tojson }},
             bottleCount: {{ data['bottles'] }},
             currentScore: {{ data['scores'].loc[user].values.tolist() }},
             done: {{ data['donelist'].loc[user] }},
@@ -268,10 +275,45 @@
           };
           console.log(this.state.gameState)
           console.log( this.state.currentScore );
+            this.socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+        
+            // Event handler for new connections.
+            // The callback function is invoked when a connection with the
+            // server is established.
+            this.socket.on('connect', function() {
+                console.log("connected");
+            });
+
+            // Event handler for server sent data.
+            // The callback function is invoked whenever the server emits data
+            // to the client. The data is then displayed in the "Received"
+            // section of the page.
+            this.socket.on('my_response', (msg) => {
+                // console.log(msg.bubplot)
+                this.updateData(msg);
+              }
+            );
+
+        
+          this.updateData = this.updateData.bind(this);
 
           this.setScore = this.setScore.bind(this);
           this.setDone = this.setDone.bind(this);
         }
+        
+        updateData(data) {
+          console.log(data)
+          this.setState({
+            currentScore: [...this.state.currentScore],
+            tasted: this.state.tasted,
+            liked: this.state.liked,
+            allDoneReady: this.state.allDoneReady,
+            eatordrink: data.bob.eatordrink,
+            foodorbooze: data.bob.foodorbooze,
+            bottleCount: data.bottlecount,
+            gameState: data.state,
+          })
+        };
 
         // setScore gets called way down on each button, and it gets called with the wine number and
         // the score written on the button. This updates the state, which causes things to be
@@ -280,7 +322,6 @@
         setScore(wineNum, score) {
           // Set the score for this press.
           if (score == 'Mine') {
-            console.log("my wine");
             this.state.myWine = wineNum;
             this.state.currentScore = this.state.currentScore;
           } else {
@@ -336,16 +377,18 @@
         render() {
           let allDoneDisplay;
           if ((this.state.done == 1) || (this.state.allDoneReady == 1)) {
-            allDoneDisplay = <WineFooter done={this.state.done} doClick={this.setDone}/>
+            allDoneDisplay = <WineFooter done={this.state.done} eatordrink={this.state.eatordrink} doClick={this.setDone}/>
           } else {
-            allDoneDisplay = <Alert color="dark">Keep Drinking, More Wines to Rate</Alert>;
+            allDoneDisplay = <Alert color="dark">Keep {this.state.eatordrink}, More {this.state.foodorbooze} to Rate</Alert>;
           }
           
           
           return (
             <div>
               <WineHeader username={"{{user}}"} tasted={this.state.tasted} liked={this.state.liked}/>
-              <WineList numWines={this.state.bottleCount}
+              <WineList
+                foodorbooze={this.state.foodorbooze}
+                numWines={this.state.bottleCount}
                 scores={this.state.currentScore}
                 done={this.state.done}
                 myWine={this.state.myWine}

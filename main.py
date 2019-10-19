@@ -84,7 +84,8 @@ elif os.path.isfile('wine.csv'):
         data['state'] = Game.TastingState
     else:
         data['state'] = Game.WelcomeState
-    data['winenames'] = pd.Series('unk', index=data['scores'].columns)
+    data['drinkwine'] = {'eatordrink': 'Drinking', 'boxorbottle': "Bottle", 'foodorbooze':'Wine'}
+    data['winenames'] = pd.Series(data['drinkwine']['foodorbooze'], index=w)
     data['bearernames'] = pd.Series('', index=data['scores'].columns)
 else:
     # Create base scores, the rest gets built later
@@ -102,7 +103,8 @@ else:
     data['donelist']['mrmagoo'] = 0 
     data['bottles'] = bottles
     data['state'] = Game.WelcomeState
-    data['winenames'] = pd.Series('unk', index=w)
+    data['drinkwine'] = {'eatordrink': 'Drinking', 'boxorbottle': "Bottle", 'foodorbooze':'Wine'}
+    data['winenames'] = pd.Series(data['drinkwine']['foodorbooze'], index=w)
     data['bottletoname'] = {}
     data['bearernames'] = pd.Series('', index=w)
     data['auditdone'] = False
@@ -133,8 +135,14 @@ else:
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
     global data
+    print('starting settings listen')
     
     # process updated settings
+    bobkey = request.form.get('bobkey')
+    if bobkey:
+        bobvalue = request.form.get('bobvalue')
+        data['drinkwine'][bobkey] = bobvalue
+    
     newb = request.form.get('bottleCount')
     if newb:
         newb = int(newb)
@@ -212,6 +220,8 @@ def index():
             save_csv()
             return redirect(url_for('rating', user=name))
             #return redirect(url_for('mybottle', user=name))
+    # if len(data['scores']) == 1 and data['scores'].index == 'mrmagoo':
+    #     return redirect(url_for('settings'))
     return render_template('login.html', form=form)
 
 
@@ -491,8 +501,11 @@ def save_csv():
 
 def sendUpdate():
     global data
+    print("sendUpdate")
     dto = {
         "scores": data['scores'].sum().to_json(),
+        "scoresjson": data['scoresjson'],
+        "donelist": data['donelistjson'],
         "complete": data['complete'],
         "state": data['state'].value,
         "drinkertotals": data['drinkertotals'].to_json(),
@@ -508,7 +521,9 @@ def sendUpdate():
         "bottletoname": data['bottletoname'],
         "bubplot": data['bubplot'],
         "myguess": data['myguess'],
-        "bubguess": data['bubguess']
+        "bubguess": data['bubguess'],
+        "bob": data['drinkwine'],
+        "bottlecount": data['bottles']
     }
     print(dto)
     socketio.emit('my_response', dto)
