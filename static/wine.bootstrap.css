@@ -10857,7 +10857,7 @@ label,
 .nav-tabs .nav-link.disabled:hover,
 .nav-tabs .nav-link.disabled:focus {
   border-color: rgba(0, 0, 0, 0.1);
-  background-color: #395462;
+  background-color: #888;
 }
 
 .nav-tabs .nav-link:hover, .nav-tabs .nav-link:focus {
