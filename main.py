@@ -90,7 +90,7 @@ elif os.path.isfile('wine.csv'):
 else:
     # Create base scores, the rest gets built later
     scores = pd.DataFrame(dtype=int)
-    w = ['wine #{}'.format(x+1) for x in range(bottles)]
+    w = ['number #{}'.format(x+1) for x in range(bottles)]
     for col in w:
         scores[col] = pd.Series([], dtype=int)
 
@@ -100,7 +100,8 @@ else:
     newd = pd.DataFrame([[0 for x in range(len(data['scores'].columns))]],
     columns=data['scores'].columns, index=['mrmagoo'])
     data['scores'] = data['scores'].append(newd)
-    data['donelist']['mrmagoo'] = 0 
+    data['donelist']['mrmagoo'] = 0
+    data['donelistjson'] = data['donelist'].to_json()
     data['bottles'] = bottles
     data['state'] = Game.WelcomeState
     data['drinkwine'] = {'eatordrink': 'Drinking', 'boxorbottle': "Bottle", 'foodorbooze':'Wine'}
@@ -135,7 +136,7 @@ else:
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
     global data
-    print('starting settings listen')
+    #print('starting settings listen')
     
     # process updated settings
     bobkey = request.form.get('bobkey')
@@ -149,10 +150,10 @@ def settings():
         if len(data['scores'].columns) < newb:
             # reset donelist as everyone has new bottles
             data['donelist'] = pd.Series(0, index=data['donelist'].index)
-            w = ['wine #{}'.format(x+1) for x in range(len(data['scores'].columns),newb)]
+            w = ['number #{}'.format(x+1) for x in range(len(data['scores'].columns),newb)]
             for col in w:
                 data['scores'][col] = 0
-                data['winenames'][col] = 'unk'
+                data['winenames'][col] = '???'
                 data['bearernames'][col] = ''
         elif len(data['scores'].columns) > newb:
             for col in data['scores'].columns[newb - len(data['scores'].columns):]:
@@ -165,6 +166,7 @@ def settings():
     if winenum:
         winename = request.form.get('value')
         if winename:
+            #print('WineNum: WineName -> {}:{}'.format(winenum, winename))
             data['winenames'][int(winenum)] = str(winename)
             data['bearernames'][int(winenum)] = data['bottletoname'][winename]
             data['myreal'][data['bottletoname'][winename]] = int(winenum)
@@ -217,6 +219,8 @@ def index():
             data['myguess'][name] = 100
             data['myreal'][name] = 100
             data['bottletoname'][bottle] = name
+            data['good_buddies'][name] = []
+            data['bad_buddies'][name] = []
             save_csv()
             return redirect(url_for('rating', user=name))
             #return redirect(url_for('mybottle', user=name))
@@ -279,7 +283,7 @@ def rating(user=None):
         if num > int(bottles):
             return "too many bottles {} out of {}\n{}".format(int(num), bottles, tabulate.tabulate(data['scores'], headers='keys', tablefmt='html'))
         
-        print(data)
+        #print(data)
 
         return render_template('tasting.html', data=data, user=user)
     return render_template('missinglogin.html', user=user)
@@ -311,9 +315,9 @@ def results():
 
 def save_csv():
     global data
-    print("save_csv start")
+    #print("save_csv start")
     #print(data['myguess'])
-    print(data['bottletoname'])
+    #print(data['bottletoname'])
     
     # process stuff
     if (len(data['scores'].index) > 2):    
@@ -442,20 +446,20 @@ def save_csv():
         bubguess.append({'x': 0, 'y': 0, 'r': 0})
         bubguess.append({'x': data['bottles'] + 1, 'y': maxc + 1, 'r': 0})
         data['bubguess'] = bubguess
-        print(bubguess)
+        #print(bubguess)
         
         # Change state
         if (len(data['scores'].index) < data['bottles']/2):
-            print('welcome')
+            #print('welcome')
             data['state'] = Game.WelcomeState    
         elif (len(data['scores'].index) >= 4) and len(data['wineprogress']) >= 2:
-            print('tasting')
+            #print('tasting')
             data['state'] = Game.TastingState
             if len(data['scores'].index) == data['donelist'].sum():
-                print("audit")
+                #print("audit")
                 data['state'] = Game.AuditState
                 if data['auditdone'] == True:
-                    print('winlose')
+                    #print('winlose')
                     data['state'] = Game.WinLoseState
                     
         # make plot barh
@@ -474,16 +478,16 @@ def save_csv():
         data['mywinescore'] = mywinescore
             
         #data['table'] = str(tabulate.tabulate(data['scores'], headers='keys', tablefmt='html'))
-        print("\nTieW {}\nTieL {}\nloser to winner {}\nwines low to high {}\n".format(tie_winner, tie_loser, names_winner, wine_winner))
-        print("LoveHate: {}\nConsistent: {}\n".format(data['scores'].std().idxmax(), data['scores'].std().idxmin()))
-        print("Audit Done {}".format(data['auditdone']))
-        print('Good Buddies: {}'.format(data['good_buddies']))
-        print('Bad Buddies: {}'.format(data['bad_buddies']))
-        print('Wine Names: {}'.format(data['winenames']))
-        print('Wine Progress: {}'.format(data['wineprogress']))
-        print('Shame: {}'.format(data['missraters']))
-        print('Buddies: \n{}'.format(data['buddies']))
-        print('Personal Wine Score: \n{}'.format(data['mywinescore']))
+        # print("\nTieW {}\nTieL {}\nloser to winner {}\nwines low to high {}\n".format(tie_winner, tie_loser, names_winner, wine_winner))
+        # print("LoveHate: {}\nConsistent: {}\n".format(data['scores'].std().idxmax(), data['scores'].std().idxmin()))
+        # print("Audit Done {}".format(data['auditdone']))
+        # print('Good Buddies: {}'.format(data['good_buddies']))
+        # print('Bad Buddies: {}'.format(data['bad_buddies']))
+        # print('Wine Names: {}'.format(data['winenames']))
+        # print('Wine Progress: {}'.format(data['wineprogress']))
+        # print('Shame: {}'.format(data['missraters']))
+        # print('Buddies: \n{}'.format(data['buddies']))
+        # print('Personal Wine Score: \n{}'.format(data['mywinescore']))
     
 
             
@@ -501,7 +505,7 @@ def save_csv():
 
 def sendUpdate():
     global data
-    print("sendUpdate")
+    #print("sendUpdate")
     dto = {
         "scores": data['scores'].sum().to_json(),
         "scoresjson": data['scoresjson'],
@@ -525,12 +529,8 @@ def sendUpdate():
         "bob": data['drinkwine'],
         "bottlecount": data['bottles']
     }
-    print(dto)
+    #print(dto)
     socketio.emit('my_response', dto)
 
-
-
-
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=True, threaded=True)

@@ -349,6 +349,9 @@
         this.state = {
           page: 0,
           gameState: {{ data['state'].value|tojson }},
+          eatordrink: {{ data['drinkwine']['eatordrink']|tojson }},
+          boxorbottle: {{ data['drinkwine']['boxorbottle']|tojson }},
+          foodorbooze: {{ data['drinkwine']['foodorbooze']|tojson }},
           winedata : {
             labels: {{ data['scores'].columns.tolist()|tojson }},
             datasets: [
@@ -395,7 +398,7 @@
             labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
             datasets: [
               {
-                label: 'Drinkers Totals',
+                label: "Drinkers Totals",
                 backgroundColor: '#7DA1B1',
                 borderColor: '#395462',
                 borderWidth: 1,
@@ -607,10 +610,14 @@
         this.setState({
           gameState: data.state,
           drinkerCnt: data.drinkercnt,
+          eatordrink: data.bob.eatordrink,
+          boxorbottle: data.bob.boxorbottle,
+          foodorbooze: data.bob.foodorbooze,
           winedata: {...this.state.winedata,
             labels: Object.keys(scores),
             datasets: [
               {...this.state.winedata.datasets[0],
+              label: this.state.foodorbooze + " Totals",
               data: Object.values(scores)}
             ]
           },
@@ -618,6 +625,7 @@
             labels: Object.values(JSON.parse(data.winenames)),
             datasets: [
               {...this.state.winedataNames.datasets[0],
+              label: this.state.foodorbooze + " Names",
               data: Object.values(scores)}
             ]
           },
@@ -636,6 +644,7 @@
             labels: Object.keys(totals),
             datasets: [
               {...this.state.drinkerTotals.datasets[0],
+                label: this.state.eatordrink + " Totals",
                 data: Object.values(totals)}
             ]
           },
@@ -724,13 +733,13 @@
               </Collapse>
               <Collapse isOpen={this.state.page === 2}>
               <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
-                <h2>Bad Drinking Buddies</h2>
+                <h2>Bad {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
               </Container>
               </Collapse>
               <Collapse isOpen={this.state.page === 3}>
               <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
-                <h2>Good Drinking Buddies</h2>
+                <h2>Good {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
               </Container>
               </Collapse>
@@ -759,11 +768,11 @@
                 <HorizontalBar data={this.state.drinkerTotals} options={optionsH}/>
               </Collapse>
               <Collapse isOpen={this.state.page === 3}>
-                <h2>Bad Drinking Buddies</h2>
+                <h2>Bad {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
               </Collapse>
               <Collapse isOpen={this.state.page === 4}>
-                <h2>Good Drinking Buddies</h2>
+                <h2>Good {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
               </Collapse>
             </div>
@@ -843,11 +852,11 @@
                 <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
               </Collapse>
               <Collapse isOpen={this.state.page === 16}>
-                <h2>Bad Drinking Buddies</h2>
+                <h2>Bad {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
               </Collapse>
               <Collapse isOpen={this.state.page === 17}>
-                <h2>Good Drinking Buddies</h2>
+                <h2>Good {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
               </Collapse>
               <Collapse isOpen={this.state.page === 18}>

@@ -63,7 +63,15 @@
         ListGroup,
         ListGroupItem,
         Media,
+        Popover,
+        PopoverHeader,
+        PopoverBody,
         Row,
+        TabContent,
+        TabPane,
+        Nav,
+        NavItem,
+        NavLink,
       } = Reactstrap;
 
       class WineHeader extends React.Component {
@@ -82,19 +90,32 @@
                 <Row>
                   <Col xs="2"></Col>
                   <Col xs="auto">
-                    <h3>Hello {this.props.username}</h3>
+                    <h2>Hello {this.props.username}</h2>
                   </Col>
                   <Col xs="2"></Col>
                 </Row>
                 <Row>
-                  <Col xs="6">
+                  <Col xs="9">
                     <h6>Tasted: {this.props.tasted}</h6>
                   </Col>
-                  <Col xs="6">
+                  <Col xs="3">
                     <h6>Liked: {this.props.liked}</h6>
                   </Col>
                 </Row>
               </Container>
+            </div>
+          )
+        }
+      };
+      
+      class Buddies extends React.Component {
+        render() {
+          return (
+            <div>
+              <h4>Good Buddies:</h4>
+              <h4>{this.props.goodBuddies.join(" - ")}</h4>
+              <h5>Bad Buddies: </h5>
+              <h5>{this.props.badBuddies.join(" - ")}</h5>
             </div>
           )
         }
@@ -139,6 +160,39 @@
           )
         }
       };
+      
+      class NoteButton extends React.Component {
+        constructor (props) {
+          super(props);
+          this.state = {
+            popoverOpen: false,
+          };
+          this.onClick = this.onClick.bind(this);
+        }
+        onClick(){
+          this.setState({ popoverOpen: !this.state.popoverOpen });
+        }
+        render() {
+          console.log('notes')
+          console.log(this.props.wineNum)
+          console.log(this.state.popoverOpen)
+          return (
+            <div>
+            <Button size="sm" 
+              color="link"
+              id='Popover1'
+              onClick={() => this.onClick()}
+              >
+                Notes
+            </Button>
+            <Popover placement="auto" isOpen={this.state.popoverOpen} target="Popover1" trigger="legacy" >
+              <PopoverHeader>Notes {this.props.wineNum + 1}</PopoverHeader>
+              <PopoverBody>Add notes here</PopoverBody>
+            </Popover>
+            </div>
+          )
+        }
+      };
 
       class WineScore extends React.Component {
         constructor (props) {
@@ -156,7 +210,6 @@
         }
 
         render() {
-
           let scores = Array(8).fill().map((_, i) => {
             return (
                     <ScoreButton
@@ -172,6 +225,8 @@
                       done={this.props.done}
                       doClick={(score) => this.props.doClick(this.props.wineNum, score)}/
                     >);
+          //scores.unshift(
+          //            <NoteButton wineNum={this.props.wineNum}/>);
 
           let activeClassName = "";
           let popColor = "secondary";
@@ -197,9 +252,9 @@
               <ListGroup>
                 <ListGroupItem color={popColor} onClick={this.onClick}>
                   <Row>
-                    <Col xs="4"><h6>{this.props.wineNameArray[this.props.wineNum]}</h6></Col>
+                    <Col xs="5"><h6>{this.props.wineNameArray[this.props.wineNum]}</h6></Col>
                     <Col xs="4"><Badge color="success">{this.props.wineNum === this.props.myWine ? "MyGuess" : ""}</Badge></Col>
-                    <Col xs="4"><Badge size="lg" color={scoreColor}>{this.props.currentScore}</Badge></Col>
+                    <Col xs="3"><Badge size="lg" color={scoreColor}>{this.props.currentScore}</Badge></Col>
                   </Row>
                 </ListGroupItem>
                 <Collapse isOpen={this.state.expanded}>
@@ -267,6 +322,12 @@
             myReal: {{ data['myreal'][user] }},
             
             gameState: {{ data['state'].value|tojson }},
+            
+            goodBuddies: {{ data['good_buddies'][user]|tojson }},
+            badBuddies: {{ data['bad_buddies'][user]|tojson }},
+            
+            activeTab: '1',
+
 
             // These items are computed, so they may not belong in state, but it was an easy place
             // to put them.
@@ -312,6 +373,9 @@
             foodorbooze: data.bob.foodorbooze,
             bottleCount: data.bottlecount,
             gameState: data.state,
+            goodBuddies: data.goodbuddies["{{user}}"],
+            badBuddies: data.badbuddies["{{user}}"],
+
           })
         };
 
@@ -373,6 +437,12 @@
           
         }
         
+        doToggle(tab) {
+          this.setState({
+            activeTab: tab,
+          })
+        };
+        
 
         render() {
           let allDoneDisplay;
@@ -382,19 +452,46 @@
             allDoneDisplay = <Alert color="dark">Keep {this.state.eatordrink}, More {this.state.foodorbooze} to Rate</Alert>;
           }
           
-          
           return (
             <div>
               <WineHeader username={"{{user}}"} tasted={this.state.tasted} liked={this.state.liked}/>
-              <WineList
-                foodorbooze={this.state.foodorbooze}
-                numWines={this.state.bottleCount}
-                scores={this.state.currentScore}
-                done={this.state.done}
-                myWine={this.state.myWine}
-                myReal={this.state.myReal}
-                gameState={this.state.gameState}
-                doClick={this.setScore}/>
+              <Buddies username={"{{user}}"}
+                goodBuddies={this.state.goodBuddies}
+                badBuddies={this.state.badBuddies}
+              />
+              <Nav tabs>
+                <NavItem>
+                  <NavLink
+                    classname={this.state.activeTab === '1'}
+                    onClick={() => { this.doToggle('1'); }}
+                  >
+                    Scores
+                  </NavLink>
+                </NavItem>
+                <NavItem>
+                  <NavLink
+                    onClick={() => { this.doToggle('2'); }}
+                  >
+                    {this.state.foodorbooze} Notes
+                  </NavLink>
+                </NavItem>
+              </Nav>
+              <TabContent activeTab={this.state.activeTab}>
+                <TabPane tabId="1">
+                  <WineList
+                    foodorbooze={this.state.foodorbooze}
+                    numWines={this.state.bottleCount}
+                    scores={this.state.currentScore}
+                    done={this.state.done}
+                    myWine={this.state.myWine}
+                    myReal={this.state.myReal}
+                    gameState={this.state.gameState}
+                    doClick={this.setScore}/>
+                </TabPane>
+                <TabPane tabId="2">
+                  <h3>Tab 2</h3>
+                </TabPane>
+              </TabContent>
               {allDoneDisplay}
               <br />
               <br />

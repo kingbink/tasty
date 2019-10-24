@@ -15,14 +15,30 @@ class Game(enum.Enum):
 if os.path.isfile('wine.pickle'):
     data = pickle.load( open( 'wine.pickle', 'rb') )
     
-print("TieW {}\nTieL {}\nloser to winner {}\nwines low to high {}\n".format(data['tie']['winner'], data['tie']['loser'], data['winnernames'], data['winnerwines']))
-print("LoveHate: {}\nConsistent: {}\n".format(data['scores'].std().idxmax(), data['scores'].std().idxmin()))
-print('Good Buddies: {}\n'.format(data['good_buddies']))
-print('Bad Buddies: {}\n'.format(data['bad_buddies']))
-print('Wine Progress: {}\n'.format(data['wineprogress']))
-print('Buddies (lower means closer to same scoring of wines: \n{}\n'.format(data['buddies']))
-print('Personal Wine Score: \n{}\n'.format(data['mywinescore']))
-print('All Scores: \n{}\n'.format(data['scores']))
-print('Wine Names: \n{}\n'.format(data['winenames']))
-print('bearernames: \n{}\n'.format(data['bearernames']))
-print('Bottles and who brought: \n{}\n'.format(data['bottletoname']))
+    s = json.loads(data['scores'].to_json(orient='index'))
+    new_s = {}
+    for name in s:
+        new_s[name] = {}
+        cnt = 0
+        for wine in s[name]:
+            if wine in data['bottletoname']:
+                new_s[name][data['winenames'][wine]] = {'rating': str(s[name][wine])}
+                if data['bottletoname'][data['winenames'][wine]] == name:
+                    new_s[name][data['winenames'][wine]]['brought'] = 'I brought this'
+                if data['myguess'][name] == cnt:
+                    new_s[name][data['winenames'][wine]]['guessed'] = 'My guess'
+                cnt += 1
+    print('Bottles and who brought: \n{}\n'.format(json.dumps(data['bottletoname'], indent=4)))
+    print(json.dumps(new_s, indent=4))
+
+    print("TieW {}\nTieL {}\nloser to winner {}\nwines low to high {}\n".format(data['tie']['winner'], data['tie']['loser'], data['winnernames'], data['winnerwines']))
+    print('Good Buddies: {}\n'.format(json.dumps(data['good_buddies'],indent=4)))
+    print('Bad Buddies: {}\n'.format(json.dumps(data['bad_buddies'], indent=4)))
+    if 'buddies' in data:
+        print('Buddies (lower means closer to same scoring of wines: \n{}\n'.format(data['buddies']))
+    # print('Personal Wine Score: \n{}\n'.format(data['mywinescore']))
+    print('All Scores: \n{}\n'.format(data['scores']))
+    print('Wine Names: \n{}\n'.format(data['winenames']))
+    print('bearernames: \n{}\n'.format(data['bearernames']))
+    if 'myguess' in data:
+        print('My Guess: \n{}\n'.format(data['myguess']))

@@ -394,6 +394,7 @@ h4, .h4 {
 
 h5, .h5 {
   font-size: 1.171875rem;
+  color: #701217
 }
 
 h6, .h6 {
@@ -6435,8 +6436,8 @@ a.close.disabled {
 
 .popover {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 100;
+  left: 100;
   z-index: 1060;
   display: block;
   max-width: 276px;
