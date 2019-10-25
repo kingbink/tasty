@@ -82,8 +82,10 @@ elif os.path.isfile('wine.csv'):
     data['bottles'] = len(data['scores'].columns)
     if (len(data['scores'].index) >= 4):
         data['state'] = Game.TastingState
+        data['gamestate'] = "tasting"
     else:
         data['state'] = Game.WelcomeState
+        data['gamestate'] = "welcome"
     data['drinkwine'] = {'eatordrink': 'Drinking', 'boxorbottle': "Bottle", 'foodorbooze':'Wine'}
     data['winenames'] = pd.Series('???', index=w)
     data['bearernames'] = pd.Series('', index=data['scores'].columns)
@@ -104,6 +106,7 @@ else:
     data['donelistjson'] = data['donelist'].to_json()
     data['bottles'] = bottles
     data['state'] = Game.WelcomeState
+    data['gamestate'] = 'welcome'
     data['drinkwine'] = {'eatordrink': 'Drinking', 'boxorbottle': "Bottle", 'foodorbooze':'Wine'}
     data['winenames'] = pd.Series('???', index=w)
     data['bottletoname'] = {}
@@ -332,7 +335,7 @@ def results():
     #     tabulate.tabulate([[data['scores'].sum(axis=1)]], headers='keys', tablefmt='html'),
     #     tabulate.tabulate([data['scores'].max()], headers='keys', tablefmt='html'),
     #     tabulate.tabulate([data['scores'].min()], headers='keys', tablefmt='html'))
-    return render_template('global.html', data=data, myip="blindTASTY")
+    return render_template('global.html', data=data, myip="blindwine.duckdns.org")
 
 
 def save_csv():
@@ -473,16 +476,20 @@ def save_csv():
         # Change state
         if (len(data['scores'].index) < data['bottles']/2):
             #print('welcome')
-            data['state'] = Game.WelcomeState    
+            data['state'] = Game.WelcomeState
+            data['gamestate'] = 'welcome'
         elif (len(data['scores'].index) >= 4) and len(data['wineprogress']) >= 2:
             #print('tasting')
             data['state'] = Game.TastingState
+            data['gamestate'] = 'tasting'
             if len(data['scores'].index) == data['donelist'].sum():
                 #print("audit")
                 data['state'] = Game.AuditState
+                data['gamestate'] = 'audit'
                 if data['auditdone'] == True:
                     #print('winlose')
                     data['state'] = Game.WinLoseState
+                    data['gamestate'] = 'winLose'
                     
         # make plot barh
         # bh = data['scores'].T.plot.barh(stacked=True)
@@ -533,7 +540,8 @@ def sendUpdate():
         "scoresjson": data['scoresjson'],
         "donelist": data['donelistjson'],
         "complete": data['complete'],
-        "state": data['state'].value,
+        #"state": data['state'].value,
+        "gamestate": data['gamestate'],
         "drinkertotals": data['drinkertotals'].to_json(),
         "drinkercnt": len(data['drinkertotals']),
         "badbuddies": data['bad_buddies'],

@@ -42,7 +42,7 @@
     <script type="text/babel" charset="utf-8">
 
 
-      console.log("Entering Tasting with {{ data['bottles'] }} total bottles");
+      console.log("Entering Tasting with {{ data['bottles'] }} total count bottles");
 
       // "Import" the components from Reactstrap
       const {
@@ -366,7 +366,7 @@
             myReal: {{ data['myreal'][user] }},
             myNotes: {{ data['notes'][user]|tojson }},
             
-            gameState: {{ data['state'].value|tojson }},
+            gameState: {{ data['gamestate']|tojson }},
             
             goodBuddies: {{ data['good_buddies'][user]|tojson }},
             badBuddies: {{ data['bad_buddies'][user]|tojson }},
@@ -426,7 +426,7 @@
             boxorbottle: data.bob.boxorbottle,
             foodorbooze: data.bob.foodorbooze,
             bottleCount: data.bottlecount,
-            gameState: data.state,
+            gameState: data.gamestate,
             goodBuddies: data.goodbuddies["{{user}}"],
             badBuddies: data.badbuddies["{{user}}"],
             myNotes: data.notes["{{user}}"],
@@ -503,7 +503,6 @@
           $.post( "{{ url_for('rating', user=user) }}", {"notes": this.state.myNotes})
         };
         
-
         render() {
           let allDoneDisplay;
           if ((this.state.done == 1) || (this.state.allDoneReady == 1)) {

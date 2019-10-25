@@ -348,7 +348,7 @@
         
         this.state = {
           page: 0,
-          gameState: {{ data['state'].value|tojson }},
+          gameState: {{ data['gamestate']|tojson }},
           eatordrink: {{ data['drinkwine']['eatordrink']|tojson }},
           boxorbottle: {{ data['drinkwine']['boxorbottle']|tojson }},
           foodorbooze: {{ data['drinkwine']['foodorbooze']|tojson }},
@@ -595,7 +595,7 @@
         console.log(data)
         let scores = JSON.parse(data.scores)
         let totals = JSON.parse(data.drinkertotals)
-        if (data.state === "winLose" && data.state != this.state.gameState) {
+        if (data.gamestate === "winLose" && data.gamestate != this.state.gameState) {
           this.setState({ page: 0 })
         }
         
@@ -608,7 +608,7 @@
         })
 
         this.setState({
-          gameState: data.state,
+          gameState: data.gamestate,
           drinkerCnt: data.drinkercnt,
           eatordrink: data.bob.eatordrink,
           boxorbottle: data.bob.boxorbottle,
@@ -711,7 +711,7 @@
               <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
               <h1>Welcome to Blind Tasty</h1>
               <br />
-              <h2>http://{{ myip }}:5000</h2>
+              <h2>http://{{ myip }}</h2>
               <br />
               <h3>Open a browser on your phone and login with your name</h3>
               <Radar data={this.state.drinkersPlaying} options={optionsPolar} redraw/>
