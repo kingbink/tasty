@@ -18,10 +18,10 @@ if os.path.isfile('wine.pickle'):
     
     s = json.loads(data['scores'].to_json(orient='index'))
     #print(s)
-    cnt = 0
     new_s = OrderedDict()
     for name in s:
         new_s[name] = OrderedDict()
+        cnt = 0
         #print(s[name])
         for w in range(len(s[name])):
             if data['winenames'][w] == '???':
