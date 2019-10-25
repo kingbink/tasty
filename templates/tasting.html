@@ -163,6 +163,20 @@
         }
       };
       
+      class ResetButton extends React.Component {
+        render() {
+          return (
+            <Button size="sm" 
+              color="link"
+              disabled={this.props.done === 1}
+              onClick={this.props.resetClick}
+              >
+                RESET
+            </Button>
+          )
+        }
+      };
+      
       class NoteButton extends React.Component {
         constructor (props) {
           super(props);
@@ -205,10 +219,21 @@
           };
 
           this.onClick = this.onClick.bind(this);
+          this.resetClick = this.resetClick.bind(this);
+          
         }
 
         onClick() {
           this.setState({ expanded: !this.state.expanded });
+          $.post( "{{ url_for('rating', user=user) }}", {"notes": this.state.notes, "wine": this.props.wineNum});
+        }
+        
+        resetClick() {
+          console.log("reset now")
+          this.setState({
+            notes: ""
+          })
+          $.post( "{{ url_for('rating', user=user) }}", {"reset": 'reset', "wine": this.props.wineNum});
         }
 
         render() {
@@ -227,8 +252,8 @@
                       done={this.props.done}
                       doClick={(score) => this.props.doClick(this.props.wineNum, score)}/
                     >);
-          //scores.unshift(
-          //            <NoteButton wineNum={this.props.wineNum}/>);
+          scores.unshift(
+                      <ResetButton wineNum={this.props.wineNum} resetClick={this.resetClick}/>);
 
           let activeClassName = "";
           let popColor = "secondary";
@@ -248,14 +273,15 @@
           } else {
             scoreColor = "primary";
           }
-          
+          console.log(this.props.myNotes[this.props.wineNum])
           return (
             <ListGroupItem>
               <ListGroup>
                 <ListGroupItem color={popColor} onClick={this.onClick}>
                   <Row>
-                    <Col xs="5"><h6>{this.props.wineNameArray[this.props.wineNum]}</h6></Col>
-                    <Col xs="4"><Badge color="success">{this.props.wineNum === this.props.myWine ? "MyGuess" : ""}</Badge></Col>
+                    <Col xs="4"><h6>{this.props.wineNameArray[this.props.wineNum]}</h6></Col>
+                    <Col xs="2"><Badge color="primary">{this.props.myNotes[this.props.wineNum] === undefined ? "" : "#"}</Badge></Col>
+                    <Col xs="3"><Badge color="success">{this.props.wineNum === this.props.myWine ? "MyGuess" : ""}</Badge></Col>
                     <Col xs="3"><Badge size="lg" color={scoreColor}>{this.props.currentScore}</Badge></Col>
                   </Row>
                 </ListGroupItem>
@@ -264,6 +290,20 @@
                     <ButtonToolbar>
                       {scores}
                     </ButtonToolbar>
+                  </ListGroupItem>
+                  <ListGroupItem>
+                    <Form>
+                      <FormGroup>
+                        <Label for="exampleText">{this.props.boxorbottle} {this.props.wineNum + 1} Notes</Label>
+                        <Input type="textarea"
+                          name="text"
+                          id="exampleText"
+                          placeholder={this.props.myNotes[this.props.wineNum]}
+                          onChange={e => this.setState({ notes: e.target.value })}
+                          value={this.state.notes}
+                        />
+                      </FormGroup>
+                    </Form>
                   </ListGroupItem>
                 </Collapse>
               </ListGroup>
@@ -294,6 +334,8 @@
               currentScore={this.props.scores[i]}
               myWine={this.props.myWine}
               myReal={this.props.myReal}
+              myNotes={this.props.myNotes}
+              boxorbottle={this.props.boxorbottle}
               gameState={this.props.gameState}
               done={this.props.done}
               doClick={this.props.doClick}/>
@@ -322,6 +364,7 @@
             allDoneReady: 0,
             myWine: {{ data['myguess'][user] }},
             myReal: {{ data['myreal'][user] }},
+            myNotes: {{ data['notes'][user]|tojson }},
             
             gameState: {{ data['state'].value|tojson }},
             
@@ -337,7 +380,9 @@
             liked: 0,
           };
           console.log(this.state.gameState)
-          console.log( this.state.currentScore );
+          console.log(this.state.currentScore);
+          console.log("notes");
+          console.log(this.state.myNotes);
             this.socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
         
             // Event handler for new connections.
@@ -362,12 +407,18 @@
 
           this.setScore = this.setScore.bind(this);
           this.setDone = this.setDone.bind(this);
+          
+          this.notesClick = this.notesClick.bind(this);
         }
         
         updateData(data) {
           console.log(data)
+          console.log("scores")
+          let scores = Object.values(JSON.parse(data.scoresjson)["{{user}}"])
+          console.log(scores)
           this.setState({
-            currentScore: [...this.state.currentScore],
+            //currentScore: [...this.state.currentScore],
+            currentScore: Object.values(scores),
             tasted: this.state.tasted,
             liked: this.state.liked,
             allDoneReady: this.state.allDoneReady,
@@ -378,6 +429,8 @@
             gameState: data.state,
             goodBuddies: data.goodbuddies["{{user}}"],
             badBuddies: data.badbuddies["{{user}}"],
+            myNotes: data.notes["{{user}}"],
+            myWine: data.myguess["{{user}}"],
 
           })
         };
@@ -446,6 +499,10 @@
           })
         };
         
+        notesClick(notes) {
+          $.post( "{{ url_for('rating', user=user) }}", {"notes": this.state.myNotes})
+        };
+        
 
         render() {
           let allDoneDisplay;
@@ -462,25 +519,6 @@
                 goodBuddies={this.state.goodBuddies}
                 badBuddies={this.state.badBuddies}
               />
-              <Nav tabs>
-                <NavItem>
-                  <NavLink
-                    classname={this.state.activeTab === '1'}
-                    onClick={() => { this.doToggle('1'); }}
-                  >
-                    Scores
-                  </NavLink>
-                </NavItem>
-                <NavItem>
-                  <NavLink
-                    onClick={() => { this.doToggle('2'); }}
-                  >
-                    {this.state.boxorbottle} Notes
-                  </NavLink>
-                </NavItem>
-              </Nav>
-              <TabContent activeTab={this.state.activeTab}>
-                <TabPane tabId="1">
                   <WineList
                     foodorbooze={this.state.foodorbooze}
                     numWines={this.state.bottleCount}
@@ -488,21 +526,10 @@
                     done={this.state.done}
                     myWine={this.state.myWine}
                     myReal={this.state.myReal}
+                    myNotes={this.state.myNotes}
+                    boxorbottle={this.state.boxorbottle}
                     gameState={this.state.gameState}
                     doClick={this.setScore}/>
-                </TabPane>
-                <TabPane tabId="2">
-                  <Form>
-                    <FormGroup>
-                      <Label for="exampleText">{this.state.foodorbooze} 1 Notes</Label>
-                      <Input type="textarea" name="text" id="exampleText" />
-                    </FormGroup>
-                    <Button>
-                      Save
-                    </Button>
-                  </Form>
-                </TabPane>
-              </TabContent>
               {allDoneDisplay}
               <br />
               <br />

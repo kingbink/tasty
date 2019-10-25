@@ -42,3 +42,4 @@ if os.path.isfile('wine.pickle'):
     print('bearernames: \n{}\n'.format(data['bearernames']))
     if 'myguess' in data:
         print('My Guess: \n{}\n'.format(data['myguess']))
+    print('all notes: \n{}\n'.format(data['notes']))

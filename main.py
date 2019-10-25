@@ -116,6 +116,7 @@ else:
     data['mywinescore'] = {}
     data['myguess'] = {}
     data['myreal'] = {}
+    data['notes'] = {}
     data['complete'] = {}
     data['complete']['good'] = 0
     data['complete']['bad'] = 0
@@ -218,6 +219,7 @@ def index():
             data['donelist'][name] = 0
             data['myguess'][name] = 100
             data['myreal'][name] = 100
+            data['notes'][name] = {}
             data['bottletoname'][bottle] = name
             data['good_buddies'][name] = []
             data['bad_buddies'][name] = []
@@ -241,34 +243,53 @@ def mybottle(user=None):
 def rating(user=None):
     global data
     num = request.form.get('wine')
+    if num:
+        num = int(num)
     score = request.form.get('score')
     done = request.form.get('done')
     #print(data)
-
     
+    notes = request.form.get('notes')
+    print("Wine {} Notes: {}".format(num, notes))
+    
+    reset = request.form.get('reset')
+    print(reset)
+
     if data['scores'].index.contains(user):
-        if num == None or score == None:
-            if done:
-                data['donelist'][user] = done
-                save_csv()
-            return render_template('tasting.html', data=data, user=user)
-        
-        num = int(num)
-        if score == "Mine":
-            data['myguess'][user] = num
+        if reset == 'reset':
+            print("RESET wine {}".format(num))
+            data['scores'].ix[str(user), num] = 0
+            if num in data['notes'][user]:
+                del data['notes'][user][num]
+            data['myguess'][user] = 100
             save_csv()
             return render_template('tasting.html', data=data, user=user)
         else:
-            score = int(score)
-            # These checks are likely irrelevent 
-            if num <= data['bottles']:
-                data['scores'].ix[str(user), num] = score
-                #data['scores'].loc[str(user)][num] = score
+            if notes:
+                data['notes'][user][num] = notes
                 save_csv()
-                num = int(num) + 1
-                if int(num) > int(data['bottles']):
-                    return "<h1>All Done</h1>\n{}".format(tabulate.tabulate(data['scores'].loc[[user]], headers='keys', tablefmt='html'))
                 return render_template('tasting.html', data=data, user=user)
+            if num == None or score == None:
+                if done:
+                    data['donelist'][user] = done
+                    save_csv()
+                return render_template('tasting.html', data=data, user=user)
+            
+            if score == "Mine":
+                data['myguess'][user] = num
+                save_csv()
+                return render_template('tasting.html', data=data, user=user)
+            else:
+                score = int(score)
+                # These checks are likely irrelevent 
+                if num <= data['bottles']:
+                    data['scores'].ix[str(user), num] = score
+                    #data['scores'].loc[str(user)][num] = score
+                    save_csv()
+                    num = int(num) + 1
+                    if int(num) > int(data['bottles']):
+                        return "<h1>All Done</h1>\n{}".format(tabulate.tabulate(data['scores'].loc[[user]], headers='keys', tablefmt='html'))
+                    return render_template('tasting.html', data=data, user=user)
         
         # From here on likely is not called 
         if num <= data['bottles']:
@@ -522,6 +543,7 @@ def sendUpdate():
         "winnerwines": data['winnerwines'],
         "mywinescore": data['mywinescore'],
         "winenames": data['winenames'].to_json(),
+        "notes": data['notes'],
         "bottletoname": data['bottletoname'],
         "bubplot": data['bubplot'],
         "myguess": data['myguess'],
