@@ -85,7 +85,7 @@ elif os.path.isfile('wine.csv'):
     else:
         data['state'] = Game.WelcomeState
     data['drinkwine'] = {'eatordrink': 'Drinking', 'boxorbottle': "Bottle", 'foodorbooze':'Wine'}
-    data['winenames'] = pd.Series(data['drinkwine']['foodorbooze'], index=w)
+    data['winenames'] = pd.Series('???', index=w)
     data['bearernames'] = pd.Series('', index=data['scores'].columns)
 else:
     # Create base scores, the rest gets built later
@@ -105,7 +105,7 @@ else:
     data['bottles'] = bottles
     data['state'] = Game.WelcomeState
     data['drinkwine'] = {'eatordrink': 'Drinking', 'boxorbottle': "Bottle", 'foodorbooze':'Wine'}
-    data['winenames'] = pd.Series(data['drinkwine']['foodorbooze'], index=w)
+    data['winenames'] = pd.Series('???', index=w)
     data['bottletoname'] = {}
     data['bearernames'] = pd.Series('', index=w)
     data['auditdone'] = False
@@ -250,18 +250,19 @@ def rating(user=None):
     #print(data)
     
     notes = request.form.get('notes')
-    print("Wine {} Notes: {}".format(num, notes))
+    #print("Wine {} Notes: {}".format(num, notes))
     
     reset = request.form.get('reset')
-    print(reset)
+    #print(reset)
 
     if data['scores'].index.contains(user):
         if reset == 'reset':
-            print("RESET wine {}".format(num))
-            data['scores'].ix[str(user), num] = 0
+            #print("RESET wine {}".format(num))
             if num in data['notes'][user]:
                 del data['notes'][user][num]
-            data['myguess'][user] = 100
+            if data['donelist'][user] == 0:
+                data['scores'].ix[str(user), num] = 0
+                data['myguess'][user] = 100
             save_csv()
             return render_template('tasting.html', data=data, user=user)
         else:
@@ -555,4 +556,4 @@ def sendUpdate():
     socketio.emit('my_response', dto)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, threaded=True)
+    app.run(host='0.0.0.0', port=80, debug=False, threaded=True)

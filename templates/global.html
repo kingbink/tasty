@@ -2,7 +2,7 @@
 <html>
   <head lang="en">
     <meta charset="UTF-8">
-    <title>BlindWine</title>
+    <title>Tasty Global</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- styles -->
     <!-- Latest compiled and minified CSS -->
@@ -592,10 +592,10 @@
       }
       
       updateData(data) {
-        console.log(Object.keys(data.myguess))
+        console.log(data)
         let scores = JSON.parse(data.scores)
         let totals = JSON.parse(data.drinkertotals)
-        if (data.state === "winLose") {
+        if (data.state === "winLose" && data.state != this.state.gameState) {
           this.setState({ page: 0 })
         }
         
@@ -686,6 +686,7 @@
           guessWines : {...this.state.guessWines,
             datasets: [
                {...this.state.guessWines.datasets[0],
+               label: "My " + this.state.foodorbooze + " Guess",
                backgroundColor: bubbleColors,
                //borderColor: bubbleColorsRing,
                data: data.bubguess}
@@ -758,6 +759,7 @@
         } else if (this.state.gameState == 'audit') {
           return (
             <div>
+              <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
               <Collapse isOpen={this.state.page === 0}>
                 <Bar data={this.state.winedata} options={optionsFull}/>
               </Collapse>
@@ -775,11 +777,13 @@
                 <h2>Good {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
               </Collapse>
+              </Container>
             </div>
           )
         } else if (this.state.gameState == 'winLose') {
           return (
             <div>
+            <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
               <Collapse isOpen={this.state.page === 0}>
                 <h1 className="display-1">And the Winners are...</h1>
               </Collapse>
@@ -868,6 +872,7 @@
               <Collapse isOpen={this.state.page === 20}>
                 <Bar data={this.state.myWineScore} options={optionsFull} />
               </Collapse>
+            </Container>
             </div>
           )
         }
