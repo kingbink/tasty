@@ -164,6 +164,7 @@
                   <Col xs="2"></Col>
                 </Row>
                 <br />
+                <Collapse isOpen={this.props.gameState == "winLose" ? true : false}>
                 <Row>
                   <h4>Do you want an email of your notes and winners?</h4>
                 </Row>
@@ -172,13 +173,17 @@
                     <InputGroupAddon addonType="prepend">
                       <InputGroupText>Email</InputGroupText>
                     </InputGroupAddon>                
-                    <Input type="text" value={this.state.myEmail} onChange={this.handleChange}
+                    <Input type="email" value={this.state.myEmail} onChange={this.handleChange}
                     />
                     <InputGroupAddon addonType="append">
                       <Button color="primary" onClick={() => this.handleSubmit(this.state.myEmail)}>Send Email</Button>
                     </InputGroupAddon>
                   </InputGroup>
                 </Row>
+                </Collapse>
+                <Collapse isOpen={this.props.emailSent}>
+                  <h3>Email Sent</h3>
+                </Collapse>
               </Container>
             </div>
           )
@@ -407,6 +412,8 @@
             goodBuddies: {{ data['good_buddies'][user]|tojson }},
             badBuddies: {{ data['bad_buddies'][user]|tojson }},
             
+            emailSent: {{ data['emailsent'][user]|tojson }},
+            
             activeTab: '1',
 
 
@@ -467,6 +474,7 @@
             badBuddies: data.badbuddies["{{user}}"],
             myNotes: data.notes["{{user}}"],
             myWine: data.myguess["{{user}}"],
+            emailSent: data.emailsent["{{user}}"]
 
           })
         };
@@ -545,7 +553,12 @@
           console.log(this.state.done)
           console.log(this.state.allDoneReady)
           if ((this.state.done == 1) || (this.state.allDoneReady == 1)) {
-            allDoneDisplay = <WineFooter done={this.state.done} eatordrink={this.state.eatordrink} doClick={this.setDone}/>
+            allDoneDisplay = <WineFooter
+                                done={this.state.done}
+                                eatordrink={this.state.eatordrink}
+                                gameState={this.state.gameState}
+                                emailSent={this.state.emailSent}
+                                doClick={this.setDone}/>
           } else {
             allDoneDisplay = <Alert color="dark">Keep {this.state.eatordrink}, More {this.state.foodorbooze} to Rate</Alert>;
           }

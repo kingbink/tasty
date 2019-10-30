@@ -80,19 +80,19 @@ def connect():
 # Last resort is fresh game, and build up everything by scratch
 if os.path.isfile('wine.pickle'):
     data = pickle.load( open( 'wine.pickle', 'rb') )
-elif os.path.isfile('wine.csv'):
-    data['scores'] = pd.read_csv('wine.csv', index_col=0)
-    data['donelist'] = pd.Series(0, index=data['scores'].index)
-    data['bottles'] = len(data['scores'].columns)
-    if (len(data['scores'].index) >= 4):
-        # data['state'] = Game.TastingState
-        data['gamestate'] = "tasting"
-    else:
-        # data['state'] = Game.WelcomeState
-        data['gamestate'] = "welcome"
-    data['drinkwine'] = {'eatordrink': 'Drinking', 'boxorbottle': "Bottle", 'foodorbooze':'Wine'}
-    data['winenames'] = pd.Series('???', index=w)
-    data['bearernames'] = pd.Series('', index=data['scores'].columns)
+# elif os.path.isfile('wine.csv'):
+#     data['scores'] = pd.read_csv('wine.csv', index_col=0)
+#     data['donelist'] = pd.Series(0, index=data['scores'].index)
+#     data['bottles'] = len(data['scores'].columns)
+#     if (len(data['scores'].index) >= 4):
+#         # data['state'] = Game.TastingState
+#         data['gamestate'] = "tasting"
+#     else:
+#         # data['state'] = Game.WelcomeState
+#         data['gamestate'] = "welcome"
+#     data['drinkwine'] = {'eatordrink': 'Drinking', 'boxorbottle': "Bottle", 'foodorbooze':'Wine'}
+#     data['winenames'] = pd.Series('???', index=w)
+#     data['bearernames'] = pd.Series('', index=data['scores'].columns)
 else:
     # Create base scores, the rest gets built later
     scores = pd.DataFrame(dtype=int)
@@ -138,6 +138,7 @@ else:
     data['mywinescore'] = {}
     data['bubplot'] = [{'x':1, 'y':1, 'r':0}]
     data['bubguess'] = [{'x':1, 'y':1, 'r':0}]
+    data['emailsent'] = {}
     
 
 
@@ -230,6 +231,7 @@ def index():
             data['bottletoname'][bottle] = name
             data['good_buddies'][name] = []
             data['bad_buddies'][name] = []
+            data['emailsent'][name] = False
             save_csv()
             return redirect(url_for('rating', user=name))
             #return redirect(url_for('mybottle', user=name))
@@ -281,7 +283,10 @@ def rating(user=None):
             if email != None:
                 # print('Emailing {} for user {}'.format(email, user))
                 w, s = summary(user)
-                send_email(email, json.dumps(s, indent=4) + json.dumps(w, indent=4))
+                sent_email = send_email(email, json.dumps(s, indent=4) + json.dumps(w, indent=4))
+                print("Was email sent? {}".format(sent_email))
+                data['emailsent'][user] = sent_email
+                save_csv()
                 return render_template('tasting.html', data=data, user=user)
             
             if num == None or score == None:
@@ -582,7 +587,7 @@ def save_csv():
 
     # and finally, save to disk
     #print("writing data: {}".format(data))
-    data['scores'].to_csv('wine.csv')
+    #data['scores'].to_csv('wine.csv')
     pickle.dump( data, open( 'wine.pickle', 'wb' ) )
     
     sendUpdate()
@@ -613,7 +618,8 @@ def sendUpdate():
         "myguess": data['myguess'],
         "bubguess": data['bubguess'],
         "bob": data['drinkwine'],
-        "bottlecount": data['bottles']
+        "bottlecount": data['bottles'],
+        "emailsent": data['emailsent']
     }
     #print(dto)
     socketio.emit('my_response', dto)
