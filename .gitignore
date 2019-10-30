@@ -1,0 +1,15 @@
+# ignore my_settings.py
+my_settings.py
+
+# ignore any particular pickle or csv
+*.pickle
+*.csv
+
+# ignore komodo files
+*.komodoproject
+
+# ignore tgz
+*.tgz
+
+# ignore pyc
+*.pyc

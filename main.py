@@ -1,10 +1,12 @@
 # import copy
-import enum
+#import enum
 from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, RadioField, IntegerField, SubmitField
+import json
+from collections import OrderedDict
 import numpy as np
 import os
 import pandas as pd
@@ -33,9 +35,11 @@ from wtforms.validators import InputRequired, Length, AnyOf
 # 
 # myip = get_ip_address('wifi0')
 
-from settings import secret_key, bottles
+from settings import secret_key, bottles, email_address, email_password
 # from game import Game
 # game = Game()
+
+from send_email import send_email
 
 class ParticipantForm(FlaskForm):
     name = StringField('  Name  ',
@@ -49,17 +53,17 @@ class ParticipantForm(FlaskForm):
     submit = SubmitField("  Enter  ")
 
     
-class MyBottleForm(FlaskForm):
-    name = StringField('name',
-                            validators=[InputRequired('A name is required!'),
-                                       Length(min=2, max=40,
-                                              message='Must be between 2 and 40 characters.')])
-
-class Game(enum.Enum):
-    WelcomeState = "welcome"
-    TastingState = "tasting"
-    AuditState = "audit"
-    WinLoseState = "winLose"
+# class MyBottleForm(FlaskForm):
+#     name = StringField('name',
+#                             validators=[InputRequired('A name is required!'),
+#                                        Length(min=2, max=40,
+#                                               message='Must be between 2 and 40 characters.')])
+# 
+# class Game(enum.Enum):
+#     WelcomeState = "welcome"
+#     TastingState = "tasting"
+#     AuditState = "audit"
+#     WinLoseState = "winLose"
     
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secret_key
@@ -81,10 +85,10 @@ elif os.path.isfile('wine.csv'):
     data['donelist'] = pd.Series(0, index=data['scores'].index)
     data['bottles'] = len(data['scores'].columns)
     if (len(data['scores'].index) >= 4):
-        data['state'] = Game.TastingState
+        # data['state'] = Game.TastingState
         data['gamestate'] = "tasting"
     else:
-        data['state'] = Game.WelcomeState
+        # data['state'] = Game.WelcomeState
         data['gamestate'] = "welcome"
     data['drinkwine'] = {'eatordrink': 'Drinking', 'boxorbottle': "Bottle", 'foodorbooze':'Wine'}
     data['winenames'] = pd.Series('???', index=w)
@@ -105,7 +109,7 @@ else:
     data['donelist']['mrmagoo'] = 0
     data['donelistjson'] = data['donelist'].to_json()
     data['bottles'] = bottles
-    data['state'] = Game.WelcomeState
+    # data['state'] = Game.WelcomeState
     data['gamestate'] = 'welcome'
     data['drinkwine'] = {'eatordrink': 'Drinking', 'boxorbottle': "Bottle", 'foodorbooze':'Wine'}
     data['winenames'] = pd.Series('???', index=w)
@@ -250,13 +254,13 @@ def rating(user=None):
         num = int(num)
     score = request.form.get('score')
     done = request.form.get('done')
-    #print(data)
     
     notes = request.form.get('notes')
-    #print("Wine {} Notes: {}".format(num, notes))
+    
+    email = request.form.get('email')
     
     reset = request.form.get('reset')
-    #print(reset)
+    
 
     if data['scores'].index.contains(user):
         if reset == 'reset':
@@ -273,6 +277,13 @@ def rating(user=None):
                 data['notes'][user][num] = notes
                 save_csv()
                 return render_template('tasting.html', data=data, user=user)
+            
+            if email != None:
+                # print('Emailing {} for user {}'.format(email, user))
+                w, s = summary(user)
+                send_email(email, json.dumps(s, indent=4) + json.dumps(w, indent=4))
+                return render_template('tasting.html', data=data, user=user)
+            
             if num == None or score == None:
                 if done:
                     data['donelist'][user] = done
@@ -313,6 +324,50 @@ def rating(user=None):
         return render_template('tasting.html', data=data, user=user)
     return render_template('missinglogin.html', user=user)
 
+def summary(user):
+    s = json.loads(data['scores'].to_json(orient='index'))
+    #print(s)
+    new_s = OrderedDict()
+    for name in s:
+        if name == user:
+            new_s[name] = OrderedDict()
+            cnt = 0
+            #print(s[name])
+            for w in range(len(s[name])):
+                if data['winenames'][w] == '???':
+                    new_s[name][data['winenames'].index[w]] = {'rating': str(s[name][data['winenames'].index[w]])}
+                    if data['myguess'][name] == cnt:
+                        new_s[name][data['winenames'].index[w]]['guessed'] = 'My Guess'
+                    if cnt in data['notes'][name]:
+                        new_s[name][data['winenames'].index[w]]['notes'] = data['notes'][name][cnt]
+                else:
+                    new_s[name][data['winenames'][w]] = {'rating': str(s[name][data['winenames'].index[w]])}
+                    if data['bottletoname'][data['winenames'][w]] == name:
+                        new_s[name][data['winenames'][w]]['brought'] = 'I brought this'
+                    if data['myguess'][name] == cnt:
+                        new_s[name][data['winenames'][w]]['guessed'] = 'My Guess'
+                    if cnt in data['notes'][name]:
+                        new_s[name][data['winenames'][w]]['notes'] = data['notes'][name][cnt]
+                cnt += 1
+    
+    w = data['scores'].sum().sort_values().index[::-1]
+    new_w = OrderedDict()
+    previous_score = 0
+    previous_name = ''
+    for wine in w:
+        name = data['winenames'][wine]
+        score = data['scores'].sum()[wine]
+        new_w[name] = OrderedDict()
+        new_w[name]['score'] = score
+        new_w[name]['brought_by'] = data['bearernames'][wine]
+        if score == previous_score:
+            new_w[name]['tie'] = new_w[previous_name]['tie'] = True
+        previous_name = name
+        previous_score = score
+    print('All Wines\n{}\n'.format(json.dumps(new_w, indent=4)))
+    print('Personal Output \n{}\n'.format(json.dumps(new_s, indent=4)))
+    return(new_w, new_s)
+    
 
 @app.route('/results', methods=['GET'])
 def results():
@@ -476,19 +531,19 @@ def save_csv():
         # Change state
         if (len(data['scores'].index) < data['bottles']/2):
             #print('welcome')
-            data['state'] = Game.WelcomeState
+            # data['state'] = Game.WelcomeState
             data['gamestate'] = 'welcome'
         elif (len(data['scores'].index) >= 4) and len(data['wineprogress']) >= 2:
             #print('tasting')
-            data['state'] = Game.TastingState
+            # data['state'] = Game.TastingState
             data['gamestate'] = 'tasting'
             if len(data['scores'].index) == data['donelist'].sum():
                 #print("audit")
-                data['state'] = Game.AuditState
+                # data['state'] = Game.AuditState
                 data['gamestate'] = 'audit'
                 if data['auditdone'] == True:
                     #print('winlose')
-                    data['state'] = Game.WinLoseState
+                    # data['state'] = Game.WinLoseState
                     data['gamestate'] = 'winLose'
                     
         # make plot barh
@@ -564,4 +619,4 @@ def sendUpdate():
     socketio.emit('my_response', dto)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=False, threaded=True)
+    app.run(host='0.0.0.0', port=80, debug=True, threaded=True)

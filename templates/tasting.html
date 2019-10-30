@@ -64,6 +64,9 @@
         ListGroup,
         ListGroupItem,
         Input,
+        InputGroup,
+        InputGroupAddon,
+        InputGroupText,
         Media,
         Popover,
         PopoverHeader,
@@ -124,6 +127,23 @@
       };
 
       class WineFooter extends React.Component {
+        constructor (props) {
+          super(props);
+          this.state = {myEmail: ""}
+          this.handleChange = this.handleChange.bind(this);
+          this.handleSubmit = this.handleSubmit.bind(this);
+        }
+        
+        handleChange(e) {
+          this.setState({myEmail: e.target.value});
+        }
+        
+        handleSubmit(e) {
+          console.log("Email Me")
+          console.log(e)
+          $.post( "{{ url_for('rating', user=user) }}", {"email": e});
+        }
+        
         render() {
           return (
             <div>
@@ -142,6 +162,22 @@
                     </Button>
                   </Col>
                   <Col xs="2"></Col>
+                </Row>
+                <br />
+                <Row>
+                  <h4>Do you want an email of your notes and winners?</h4>
+                </Row>
+                <Row>
+                  <InputGroup>
+                    <InputGroupAddon addonType="prepend">
+                      <InputGroupText>Email</InputGroupText>
+                    </InputGroupAddon>                
+                    <Input type="text" value={this.state.myEmail} onChange={this.handleChange}
+                    />
+                    <InputGroupAddon addonType="append">
+                      <Button color="primary" onClick={() => this.handleSubmit(this.state.myEmail)}>Send Email</Button>
+                    </InputGroupAddon>
+                  </InputGroup>
                 </Row>
               </Container>
             </div>
@@ -505,6 +541,9 @@
         
         render() {
           let allDoneDisplay;
+          console.log('done display')
+          console.log(this.state.done)
+          console.log(this.state.allDoneReady)
           if ((this.state.done == 1) || (this.state.allDoneReady == 1)) {
             allDoneDisplay = <WineFooter done={this.state.done} eatordrink={this.state.eatordrink} doClick={this.setDone}/>
           } else {
