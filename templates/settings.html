@@ -36,9 +36,6 @@
 
     <script type="text/babel" charset="utf-8">
 
-
-      console.log("Entering Tasting with {{ data['bottles'] }} total bottles");
-
       // "Import" the components from Reactstrap
       const {
         Alert,
@@ -240,7 +237,6 @@
         constructor (props) {
           super(props);
           this.state = {
-            //value: this.props.wineName,
             dropdownOpen: false,
             bearerName: this.props.bearerName === '' ? 'DropName' : this.props.bearerName,
             wineName: this.props.wineName === '' ? 'Tasty' : this.props.wineName
@@ -518,7 +514,6 @@
             // to the client. The data is then displayed in the "Received"
             // section of the page.
             this.socket.on('my_response', (msg) => {
-                // console.log(msg.bubplot)
                 this.updateData(msg);
               }
             );
@@ -532,7 +527,7 @@
         }
         
         updateData(data) {
-          console.log(data)
+          //console.log(data)
           this.setState({
             eatordrink: data.bob.eatordrink,
             boxorbottle: data.bob.boxorbottle,
@@ -556,8 +551,6 @@
         }
         
         bobSubmit(key, value) {
-          console.log(key)
-          console.log(value)
           $.post( "{{ url_for('settings') }}",
                  {
                    "bobkey": key,

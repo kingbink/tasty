@@ -46,8 +46,6 @@
 
     <script type="text/babel" charset="utf-8">
 
-      console.log("Entering Global View");
-
       // "Import" the components from Reactstrap
       const {
         Alert,
@@ -327,24 +325,17 @@
       }
     };
     
-    // var ColorsList = ['#325D88', '#8E8C84', '#93C54B', '#29ABE0', '#F47C3C', '#d9534f'];
-    //var ColorsList = ['rgb(50, 93, 136, 0.6)', 'rgb(142, 140, 132, 0.6)', 'rgb(147, 197, 75, 0.6)', 'rgb(41, 171, 224, 0.6)', 'rgb(244, 124, 60, 0.6)', 'rgb(217, 83, 79, 0.6)']
     var ColorsList = ['rgb(112, 18, 23, 0.6)', 'rgb(57, 84, 98, 0.6)', 'rgb(125, 161, 177, 0.6)', 'rgb(204, 224, 221, 0.6)', 'rgb(15, 22, 23, 0.6']
-    //var ColorsListRing = ['rgb(217, 83, 79, 0.1)', 'rgb(50, 93, 136, 0.1)', 'rgb(142, 140, 132, 0.1)', 'rgb(147, 197, 75, 0.1)', 'rgb(41, 171, 224, 0.1)', 'rgb(244, 124, 60, 0.1)']
     let polarColors = Array({{ data['mywinescore'].keys()|tojson }}.length).fill().map((_,i) =>{
       return ColorsList[i % 6]
     })
     let bubbleColors = Array(400).fill().map((_,i) =>{
       return ColorsList[Math.floor((i + Math.random() * 6) % 6)]
     })
-    //let bubbleColorsRing = Array(400).fill().map((_,i) =>{
-    //  return ColorsListRing[Math.floor((i + Math.random() * 6) % 6)]
-    //})
+
 
     class globalView extends React.Component {
       constructor (props) {
-        //console.log({{ data['bubplot']|tojson }})
-        console.log({{ data['bubguess']|tojson }})
         super(props);
         
         this.state = {
@@ -546,7 +537,6 @@
             // to the client. The data is then displayed in the "Received"
             // section of the page.
             this.socket.on('my_response', (msg) => {
-                // console.log(msg.bubplot)
                 this.updateData(msg);
               }
             );
@@ -594,14 +584,12 @@
       }
       
       updateData(data) {
-        console.log(data)
         let scores = JSON.parse(data.scores)
         let totals = JSON.parse(data.drinkertotals)
         if (data.gamestate === "winLose" && data.gamestate != this.state.gameState) {
           this.setState({ page: 0 })
         }
         
-        //var ColorsListRing = ['rgb(217, 83, 79, 0.3)', 'rgb(50, 93, 136, 0.3)', 'rgb(142, 140, 132, 0.3)', 'rgb(147, 197, 75, 0.3)', 'rgb(41, 171, 224, 0.3)', 'rgb(244, 124, 60, 0.3)']
         let bubbleColors = Array(400).fill().map((_,i) =>{
           return ColorsList[Math.floor((i + Math.random() * 6) % 6)]
         })
@@ -704,7 +692,6 @@
             ]
           }
         });
-        //this.nextPage();
       };
       render() {
         var randomNote1 = this.state.randomNotes[Math.floor(Math.random()*this.state.randomNotes.length)];
@@ -720,7 +707,6 @@
                           '../../static/winetype.jpg'];
 
         let results;
-        console.log(this.state.page)
         if (this.state.gameState == 'welcome') {
           return (
             <div>
@@ -966,9 +952,7 @@
     
     class BuddyGroups extends React.Component {
         render() {
-          // let drinkerList = Array(this.props.drinkerCnt).fill().map((_,i) => {
           let drinkerList = Object.keys(this.props.buddies).map((i,j) => {
-            // console.log(this.props.buddies);
             return <BuddyRow
                      drinkerName={i}
                      buddyList={this.props.buddies[i].join(" --- ")}

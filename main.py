@@ -374,8 +374,8 @@ def summary(user):
             new_w[name]['tie'] = new_w[previous_name]['tie'] = True
         previous_name = name
         previous_score = score
-    print('All Wines\n{}\n'.format(json.dumps(new_w, indent=4)))
-    print('Personal Output \n{}\n'.format(json.dumps(new_s, indent=4)))
+    # print('All Wines\n{}\n'.format(json.dumps(new_w, indent=4)))
+    # print('Personal Output \n{}\n'.format(json.dumps(new_s, indent=4)))
     return(new_w, new_s)
     
 
@@ -641,4 +641,4 @@ def sendUpdate():
     socketio.emit('my_response', dto)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=True, threaded=True)
+    app.run(host='0.0.0.0', port=80, debug=False, threaded=True)

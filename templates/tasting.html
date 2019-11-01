@@ -42,7 +42,7 @@
     <script type="text/babel" charset="utf-8">
 
 
-      console.log("Entering Tasting with {{ data['bottles'] }} total count bottles");
+      //console.log("Entering Tasting with {{ data['bottles'] }} total count bottles");
 
       // "Import" the components from Reactstrap
       const {
@@ -139,8 +139,6 @@
         }
         
         handleSubmit(e) {
-          console.log("Email Me")
-          console.log(e)
           $.post( "{{ url_for('rating', user=user) }}", {"email": e});
         }
         
@@ -238,9 +236,6 @@
           this.setState({ popoverOpen: !this.state.popoverOpen });
         }
         render() {
-          console.log('notes')
-          console.log(this.props.wineNum)
-          console.log(this.state.popoverOpen)
           return (
             <div>
             <Button size="sm" 
@@ -278,7 +273,6 @@
         }
         
         resetClick() {
-          console.log("reset now")
           this.setState({
             notes: ""
           })
@@ -322,7 +316,6 @@
           } else {
             scoreColor = "primary";
           }
-          console.log(this.props.myNotes[this.props.wineNum])
           return (
             <ListGroupItem>
               <ListGroup>
@@ -371,11 +364,7 @@
               wineNameArray[i] = this.props.foodorbooze + " " + (i+1);
             };
           };
-          
-          console.log(wineNameArray)
-          console.log(this.props.scores)
-          console.log(this.props.foodorbooze)
-          
+                    
           let wineScores = Array(this.props.numWines).fill().map((_,i) => {
             return <WineScore
               wineNum={i}
@@ -430,10 +419,6 @@
             tasted: 0,
             liked: 0,
           };
-          console.log(this.state.gameState)
-          console.log(this.state.currentScore);
-          console.log("notes");
-          console.log(this.state.myNotes);
             this.socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
         
             // Event handler for new connections.
@@ -448,7 +433,6 @@
             // to the client. The data is then displayed in the "Received"
             // section of the page.
             this.socket.on('my_response', (msg) => {
-                // console.log(msg.bubplot)
                 this.updateData(msg);
               }
             );
@@ -463,12 +447,8 @@
         }
         
         updateData(data) {
-          console.log(data)
-          console.log("scores")
           let scores = Object.values(JSON.parse(data.scoresjson)["{{user}}"])
-          console.log(scores)
           this.setState({
-            //currentScore: [...this.state.currentScore],
             currentScore: Object.values(scores),
             tasted: this.state.tasted,
             liked: this.state.liked,
@@ -525,9 +505,7 @@
             liked: this.state.liked,
             allDoneReady: this.state.allDoneReady,
           });
-          
-          console.log(this.state.done)
-          
+                    
           // Do whatever you want right here. The current scores just changed.
           $.post( "{{ url_for('rating', user=user) }}", {"score": score,"wine": wineNum})
 
@@ -557,9 +535,6 @@
         
         render() {
           let allDoneDisplay;
-          console.log('done display')
-          console.log(this.state.done)
-          console.log(this.state.allDoneReady)
           if ((this.state.done == 1) || (this.state.allDoneReady == 1)) {
             allDoneDisplay = <WineFooter
                                 done={this.state.done}
