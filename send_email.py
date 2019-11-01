@@ -5,7 +5,7 @@ import re
 
 from settings import email_address, email_password
 
-def send_email(to_address, html, text='TEXT backup'):
+def send_email(to_address, summary_data, winner_data):
     port = 587  # For SSL
     sender_email = email_address
     # check to_address for valid email
@@ -37,7 +37,8 @@ def send_email(to_address, html, text='TEXT backup'):
     # """
     
     # Turn these into plain/html MIMEText objects
-    part1 = MIMEText(text, "plain")
+    html = """Work in progress"""
+    part1 = MIMEText(summary_data + winner_data, "plain")
     part2 = MIMEText(html, "html")
     
     # Add HTML/plain-text parts to MIMEMultipart message
@@ -63,4 +64,4 @@ def send_email(to_address, html, text='TEXT backup'):
     return False
         
 if __name__ == '__main__':
-    send_email('king.bink', "HTML test section", "text test")
+    send_email('outbound@example.com', "HTML test section", "text test")

@@ -70,6 +70,10 @@ app.config['SECRET_KEY'] = secret_key
 socketio = SocketIO(app, async_mode=None)
 
 data = {}
+loaded_notes_list = ['This smells like cheese, but a seriously good cheese',
+                     'What?!? Who brought this?',
+                     'Yummy in my tummy!',]
+
 
 @socketio.on('connect')
 def connect():
@@ -139,7 +143,7 @@ else:
     data['bubplot'] = [{'x':1, 'y':1, 'r':0}]
     data['bubguess'] = [{'x':1, 'y':1, 'r':0}]
     data['emailsent'] = {}
-    
+    data['randomnotes'] = loaded_notes_list    
 
 
 @app.route('/settings', methods=['GET', 'POST'])
@@ -277,13 +281,14 @@ def rating(user=None):
         else:
             if notes:
                 data['notes'][user][num] = notes
+                #data['randomnotes'].append(notes)
                 save_csv()
                 return render_template('tasting.html', data=data, user=user)
             
             if email != None:
                 # print('Emailing {} for user {}'.format(email, user))
-                w, s = summary(user)
-                sent_email = send_email(email, json.dumps(s, indent=4) + json.dumps(w, indent=4))
+                winner_data, summary_data = summary(user)
+                sent_email = send_email(email, summary_data, winner_data)
                 print("Was email sent? {}".format(sent_email))
                 data['emailsent'][user] = sent_email
                 save_csv()
@@ -400,6 +405,7 @@ def results():
 
 def save_csv():
     global data
+    global loaded_notes_list
     #print("save_csv start")
     #print(data['myguess'])
     #print(data['bottletoname'])
@@ -565,6 +571,15 @@ def save_csv():
                 mywinescore[name] = data['scores'].loc[name][wine]
                 #print(mywinescore)
         data['mywinescore'] = mywinescore
+        
+        data['randomnotes'] = []
+        for name in data['notes']:
+            for wine in data['notes'][name]:
+                data['randomnotes'].append(data['notes'][name][wine])
+        realnotecnt = len(data['randomnotes'])
+        if realnotecnt <= 6:
+            for n in range(6 - realnotecnt):
+                data['randomnotes'].append(random.choice(loaded_notes_list))
             
         #data['table'] = str(tabulate.tabulate(data['scores'], headers='keys', tablefmt='html'))
         # print("\nTieW {}\nTieL {}\nloser to winner {}\nwines low to high {}\n".format(tie_winner, tie_loser, names_winner, wine_winner))
@@ -613,6 +628,7 @@ def sendUpdate():
         "mywinescore": data['mywinescore'],
         "winenames": data['winenames'].to_json(),
         "notes": data['notes'],
+        "randomnotes": data['randomnotes'],
         "bottletoname": data['bottletoname'],
         "bubplot": data['bubplot'],
         "myguess": data['myguess'],

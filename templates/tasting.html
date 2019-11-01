@@ -166,7 +166,10 @@
                 <br />
                 <Collapse isOpen={this.props.gameState == "winLose" ? true : false}>
                 <Row>
-                  <h4>Do you want an email of your notes and winners?</h4>
+                <Col xs="2"></Col>
+                <Col xs="auto">
+                  <h6>Want an email with your notes and winners?</h6>
+                </Col>
                 </Row>
                 <Row>
                   <InputGroup>
@@ -182,7 +185,12 @@
                 </Row>
                 </Collapse>
                 <Collapse isOpen={this.props.emailSent}>
-                  <h3>Email Sent</h3>
+                  <Row>
+                    <Col xs="2"></Col>
+                    <Col xs="2"></Col>
+                      <h6>Email Sent</h6>
+                    <Col xs="2"></Col>
+                  </Row>
                 </Collapse>
               </Container>
             </div>
@@ -566,23 +574,23 @@
           return (
             <div>
               <WineHeader username={"{{user}}"} tasted={this.state.tasted} liked={this.state.liked}/>
+              <WineList
+                foodorbooze={this.state.foodorbooze}
+                numWines={this.state.bottleCount}
+                scores={this.state.currentScore}
+                done={this.state.done}
+                myWine={this.state.myWine}
+                myReal={this.state.myReal}
+                myNotes={this.state.myNotes}
+                boxorbottle={this.state.boxorbottle}
+                gameState={this.state.gameState}
+                doClick={this.setScore}/>
+              {allDoneDisplay}
+              <br />
               <Buddies username={"{{user}}"}
                 goodBuddies={this.state.goodBuddies}
                 badBuddies={this.state.badBuddies}
               />
-                  <WineList
-                    foodorbooze={this.state.foodorbooze}
-                    numWines={this.state.bottleCount}
-                    scores={this.state.currentScore}
-                    done={this.state.done}
-                    myWine={this.state.myWine}
-                    myReal={this.state.myReal}
-                    myNotes={this.state.myNotes}
-                    boxorbottle={this.state.boxorbottle}
-                    gameState={this.state.gameState}
-                    doClick={this.setScore}/>
-              {allDoneDisplay}
-              <br />
               <br />
             </div>
           )
