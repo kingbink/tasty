@@ -1,5 +1,10 @@
 # import copy
 #import enum
+import logging
+logging.basicConfig(filename='tasty.log',
+                    format='%(asctime)s - %(process)d-%(levelname)s - %(message)s',
+                    level=logging.INFO)
+
 from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
@@ -14,6 +19,8 @@ import pickle
 import random
 # import tabulate
 from wtforms.validators import InputRequired, Length, AnyOf
+
+
 
 # import matplotlib as mpl
 # mpl.use('Agg')
@@ -83,6 +90,7 @@ def connect():
 # Pickle is the best, wine.csv will need to build a few other keys based on csv input
 # Last resort is fresh game, and build up everything by scratch
 if os.path.isfile('wine.pickle'):
+    logging.info('Importing wine.pickle')
     data = pickle.load( open( 'wine.pickle', 'rb') )
 # elif os.path.isfile('wine.csv'):
 #     data['scores'] = pd.read_csv('wine.csv', index_col=0)
@@ -99,6 +107,7 @@ if os.path.isfile('wine.pickle'):
 #     data['bearernames'] = pd.Series('', index=data['scores'].columns)
 else:
     # Create base scores, the rest gets built later
+    logging.info('New Game, Creating new data')
     scores = pd.DataFrame(dtype=int)
     w = ['number #{}'.format(x+1) for x in range(bottles)]
     for col in w:
@@ -214,11 +223,13 @@ def settings():
 @app.route('/', methods=['GET', 'POST'])
 def index():
     global data
+    logging.debug('Login Page Entered')
     
     form = ParticipantForm()
     if form.validate_on_submit():
         name = str(form.name.data).upper()
         bottle = str(form.bottle.data).strip()
+        logging.info('Name: {} entering with bottle {}'.format(name, bottle))
         if len(data['scores']) == 1 and data['scores'].index == 'mrmagoo':
             data['scores'] = data['scores'].drop(index='mrmagoo')
             data['donelist'] = data['donelist'].drop(index='mrmagoo')
@@ -244,14 +255,6 @@ def index():
     return render_template('login.html', form=form)
 
 
-@app.route('/mybottle/<user>', methods=['GET', 'POST'])
-def mybottle(user=None):
-    global data
-    mybottle = MyBottleForm()
-    if mybottle.validate_on_submit():
-        pass
-    return render_template('mybottle.html', mybottle=mybottle, user=user)
-
 @app.route('/rating/<user>', methods=['GET', 'POST'])
 def rating(user=None):
     global data
@@ -266,6 +269,8 @@ def rating(user=None):
     email = request.form.get('email')
     
     reset = request.form.get('reset')
+    
+    logging.debug('Rating Post, All Data for {}: {}'.format(user, request.form))
     
 
     if data['scores'].index.contains(user):
@@ -376,6 +381,8 @@ def summary(user):
         previous_score = score
     # print('All Wines\n{}\n'.format(json.dumps(new_w, indent=4)))
     # print('Personal Output \n{}\n'.format(json.dumps(new_s, indent=4)))
+    logging.debug('Summary for {}: {}'.format(user, new_s))
+    logging.debug('Wine Scores (Loser to Winner): {}'.format(new_w))
     return(new_w, new_s)
     
 
@@ -404,6 +411,7 @@ def results():
 
 
 def save_csv():
+    logging.info('Saving Data...')
     global data
     global loaded_notes_list
     #print("save_csv start")
@@ -592,9 +600,6 @@ def save_csv():
         # print('Shame: {}'.format(data['missraters']))
         # print('Buddies: \n{}'.format(data['buddies']))
         # print('Personal Wine Score: \n{}'.format(data['mywinescore']))
-    
-
-            
             
     data['scoresjson'] = data['scores'].to_json(orient='index')
     data['donelistjson'] = data['donelist'].to_json()
@@ -603,12 +608,17 @@ def save_csv():
     # and finally, save to disk
     #print("writing data: {}".format(data))
     #data['scores'].to_csv('wine.csv')
+    logging.debug('Numbers Crunched')
     pickle.dump( data, open( 'wine.pickle', 'wb' ) )
+    logging.debug('Pickle Saved')
+    
     
     sendUpdate()
 
 def sendUpdate():
+    logging.debug('Sending Update...')
     global data
+    logging.debug('Total Data: {}'.format(data))
     #print("sendUpdate")
     dto = {
         "scores": data['scores'].sum().to_json(),
@@ -639,6 +649,7 @@ def sendUpdate():
     }
     #print(dto)
     socketio.emit('my_response', dto)
+    logging.debug('Socket Emit Done')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=False, threaded=True)

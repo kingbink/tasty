@@ -694,6 +694,7 @@
         });
       };
       render() {
+        console.log(this.state.page);
         var randomNote1 = this.state.randomNotes[Math.floor(Math.random()*this.state.randomNotes.length)];
         var randomNote2 = this.state.randomNotes[Math.floor(Math.random()*this.state.randomNotes.length)];
         var randomNote3 = this.state.randomNotes[Math.floor(Math.random()*this.state.randomNotes.length)];

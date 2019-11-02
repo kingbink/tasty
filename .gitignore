@@ -13,3 +13,6 @@ my_settings.py
 
 # ignore pyc
 *.pyc
+
+# ignore log files
+*.log
