@@ -49,9 +49,9 @@ def send_email(to_address, summary_data, winner_data):
                 html_rating = "rating: {}<br>".format(summary_data[name][wine]["rating"])
                 html += html_rating
             if "brought" in summary_data[name][wine]:
-                html += "  Mine<br>"
+                html += '<span style="color:#701217;">  Mine</span><br>'
             if "guessed" in summary_data[name][wine]:
-                html += "  My Guess<br>"
+                html += '<span style="color:#7DA1B1;">  My Guess</span><br>'
             if "notes" in summary_data[name][wine]:
                 html += "Notes: {}<br>".format(summary_data[name][wine]["notes"])
             html += "</p>"

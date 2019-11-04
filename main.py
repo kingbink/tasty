@@ -232,29 +232,33 @@ def index():
     name = request.form.get('user')
     bottle = request.form.get('bottle')
     
-    if name and bottle:
+    if name:
         name = name.upper()
         bottle = bottle.title()
-        logging.debug('{} is joining the game with bottle {}'.format(name, bottle))
+        if bottle == '':
+            bottle = '{}_came_empty_handed'.format(name)
+        logging.info('{} is joining the game with bottle {}'.format(name, bottle))
         if len(data['scores']) == 1 and data['scores'].index == 'mrmagoo':
             data['scores'] = data['scores'].drop(index='mrmagoo')
             data['donelist'] = data['donelist'].drop(index='mrmagoo')
         if data['scores'].index.contains(name):
-            logging.debug('Player already exists')
+            logging.info('Player already exists')
             override_name = request.form.get('override')
-            if override_name:
+            if override_name == "true":
                 logging.debug('Taking over {} with new {}'.format(name, bottle))
                 for k,v in data['bottletoname'].items():
                     if v == name:
-                        logging.debug('Removing {}'.format(k))
+                        logging.info('Removing {}'.format(k))
                         del data['bottletoname'][k]
+                    if k == bottle:
+                        logging.info('Duplicate {} bottle, appending name {}'.format(bottle, name))
+                        bottle += '_{}'.format(name)
                 data['bottletoname'][bottle] = name
                 save_csv()
                 return redirect(url_for('rating', user=name), 301)
             return('already_exists')
-            # return render_template('reactlogin.html', data=data, name=name)
         else:
-            logging.debug("Adding new player")
+            logging.info("Adding new player")
             newd = pd.DataFrame([[0 for x in range(len(data['scores'].columns))]],
                 columns=data['scores'].columns, index=[name])
             data['scores'] = data['scores'].append(newd)
@@ -262,6 +266,9 @@ def index():
             data['myguess'][name] = 100
             data['myreal'][name] = 100
             data['notes'][name] = {}
+            for k,v in data['bottletoname'].items():
+                if k == bottle:
+                    bottle += '_{}'.format(name)
             data['bottletoname'][bottle] = name
             data['good_buddies'][name] = []
             data['bad_buddies'][name] = []
@@ -657,15 +664,15 @@ def save_csv():
     # and finally, save to disk
     #print("writing data: {}".format(data))
     #data['scores'].to_csv('wine.csv')
-    logging.debug('Numbers Crunched')
+    logging.info('Numbers Crunched')
     pickle.dump( data, open( 'wine.pickle', 'wb' ) )
-    logging.debug('Pickle Saved')
+    logging.info('Pickle Saved')
     
     
     sendUpdate()
 
 def sendUpdate():
-    logging.debug('Sending Update...')
+    logging.info('Sending Update...')
     global data
     logging.debug('Total Data: {}'.format(data))
     #print("sendUpdate")
@@ -688,7 +695,7 @@ def sendUpdate():
         "winenames": data['winenames'].to_json(),
         "notes": data['notes'],
         "randomnotes": data['randomnotes'],
-        "bottletoname": data['bottletoname'],
+        "bottlenames": data['bottletoname'].keys(),
         "bubplot": data['bubplot'],
         "myguess": data['myguess'],
         "bubguess": data['bubguess'],
@@ -698,7 +705,7 @@ def sendUpdate():
     }
     #print(dto)
     socketio.emit('my_response', dto)
-    logging.debug('Socket Emit Done')
+    logging.info('Socket Emit Done')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True, threaded=True)

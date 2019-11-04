@@ -239,7 +239,7 @@
           this.state = {
             dropdownOpen: false,
             bearerName: this.props.bearerName === '' ? 'DropName' : this.props.bearerName,
-            wineName: this.props.wineName === '' ? 'Tasty' : this.props.wineName
+            wineName: this.props.wineName === '???' ? '?Tasty?' : this.props.wineName
           };
           
           this.onChange = this.onChange.bind(this);
@@ -337,7 +337,7 @@
   
             return (
               <div>
-                <h3>Summary of Scores</h3>
+                <h3>Summary of Scores: {nameList.length} players</h3>
                 <Table striped>
                   <tbody>
                       {scoreRow}
@@ -527,7 +527,7 @@
         }
         
         updateData(data) {
-          //console.log(data)
+          console.log(data)
           this.setState({
             eatordrink: data.bob.eatordrink,
             boxorbottle: data.bob.boxorbottle,
@@ -535,6 +535,7 @@
             bottleCount: data.bottlecount,
             scoreList: data.scoresjson,
             doneList: data.donelist,
+            bottleNames: data.bottlenames,
           })
         };
         
