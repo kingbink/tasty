@@ -3,7 +3,7 @@
 import logging
 logging.basicConfig(filename='tasty.log',
                     format='%(asctime)s - %(process)d-%(levelname)s - %(message)s',
-                    level=logging.INFO)
+                    level=logging.DEBUG)
 
 from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
@@ -107,7 +107,7 @@ if os.path.isfile('wine.pickle'):
 #     data['bearernames'] = pd.Series('', index=data['scores'].columns)
 else:
     # Create base scores, the rest gets built later
-    logging.info('New Game, Creating new data')
+    logging.info('Creating new data for new game')
     scores = pd.DataFrame(dtype=int)
     w = ['number #{}'.format(x+1) for x in range(bottles)]
     for col in w:
@@ -220,22 +220,41 @@ def settings():
         save_csv()
     return render_template('settings.html', data=data)
 
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     global data
-    logging.debug('Login Page Entered')
+    logging.info('React Login Page Entered')
     
-    form = ParticipantForm()
-    if form.validate_on_submit():
-        name = str(form.name.data).upper()
-        bottle = str(form.bottle.data).strip()
-        logging.info('Name: {} entering with bottle {}'.format(name, bottle))
+    name = None
+    bottle = None
+    
+    name = request.form.get('user')
+    bottle = request.form.get('bottle')
+    
+    if name and bottle:
+        name = name.upper()
+        bottle = bottle.title()
+        logging.debug('{} is joining the game with bottle {}'.format(name, bottle))
         if len(data['scores']) == 1 and data['scores'].index == 'mrmagoo':
             data['scores'] = data['scores'].drop(index='mrmagoo')
             data['donelist'] = data['donelist'].drop(index='mrmagoo')
         if data['scores'].index.contains(name):
-            return render_template('relogin.html', user=name)
+            logging.debug('Player already exists')
+            override_name = request.form.get('override')
+            if override_name:
+                logging.debug('Taking over {} with new {}'.format(name, bottle))
+                for k,v in data['bottletoname'].items():
+                    if v == name:
+                        logging.debug('Removing {}'.format(k))
+                        del data['bottletoname'][k]
+                data['bottletoname'][bottle] = name
+                save_csv()
+                return redirect(url_for('rating', user=name), 301)
+            return('already_exists')
+            # return render_template('reactlogin.html', data=data, name=name)
         else:
+            logging.debug("Adding new player")
             newd = pd.DataFrame([[0 for x in range(len(data['scores'].columns))]],
                 columns=data['scores'].columns, index=[name])
             data['scores'] = data['scores'].append(newd)
@@ -248,11 +267,45 @@ def index():
             data['bad_buddies'][name] = []
             data['emailsent'][name] = False
             save_csv()
-            return redirect(url_for('rating', user=name))
-            #return redirect(url_for('mybottle', user=name))
-    # if len(data['scores']) == 1 and data['scores'].index == 'mrmagoo':
-    #     return redirect(url_for('settings'))
-    return render_template('login.html', form=form)
+            return redirect(url_for('rating', user=name), 301)
+        
+    
+    return render_template('reactlogin.html', data=data, name=name)
+    
+
+# @app.route('/', methods=['GET', 'POST'])
+# def index():
+#     global data
+#     logging.debug('Login Page Entered')
+#     
+#     form = ParticipantForm()
+#     if form.validate_on_submit():
+#         name = str(form.name.data).upper()
+#         bottle = str(form.bottle.data).strip()
+#         logging.info('Name: {} entering with bottle {}'.format(name, bottle))
+#         if len(data['scores']) == 1 and data['scores'].index == 'mrmagoo':
+#             data['scores'] = data['scores'].drop(index='mrmagoo')
+#             data['donelist'] = data['donelist'].drop(index='mrmagoo')
+#         if data['scores'].index.contains(name):
+#             return render_template('relogin.html', user=name)
+#         else:
+#             newd = pd.DataFrame([[0 for x in range(len(data['scores'].columns))]],
+#                 columns=data['scores'].columns, index=[name])
+#             data['scores'] = data['scores'].append(newd)
+#             data['donelist'][name] = 0
+#             data['myguess'][name] = 100
+#             data['myreal'][name] = 100
+#             data['notes'][name] = {}
+#             data['bottletoname'][bottle] = name
+#             data['good_buddies'][name] = []
+#             data['bad_buddies'][name] = []
+#             data['emailsent'][name] = False
+#             save_csv()
+#             return redirect(url_for('rating', user=name))
+#             #return redirect(url_for('mybottle', user=name))
+#     # if len(data['scores']) == 1 and data['scores'].index == 'mrmagoo':
+#     #     return redirect(url_for('settings'))
+#     return render_template('login.html', form=form)
 
 
 @app.route('/rating/<user>', methods=['GET', 'POST'])
@@ -263,13 +316,9 @@ def rating(user=None):
         num = int(num)
     score = request.form.get('score')
     done = request.form.get('done')
-    
     notes = request.form.get('notes')
-    
     email = request.form.get('email')
-    
     reset = request.form.get('reset')
-    
     logging.debug('Rating Post, All Data for {}: {}'.format(user, request.form))
     
 
@@ -652,4 +701,4 @@ def sendUpdate():
     logging.debug('Socket Emit Done')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=False, threaded=True)
+    app.run(host='0.0.0.0', port=80, debug=True, threaded=True)

@@ -1,0 +1,161 @@
+<!doctype html>
+<html>
+  <head lang="en">
+    <meta charset="UTF-8">
+    <title>Tasty Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- styles -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="../../static/wine.bootstrap.css">
+  </head>
+  <body>
+    <div class="container">
+      <div id="root"></div>
+    </div>
+    <!-- scripts -->
+
+    <!-- Reactstrap Required dependencies -->
+    <script type="text/javascript" src="../../static/prop-types.min.js"></script>
+    <script type="text/javascript" src="../../static/react.production.min.js"></script>
+    <script type="text/javascript" src="../../static/react-dom.production.min.js"></script>
+    <!-- Reactstrap Optional dependencies -->
+    <script type="text/javascript" src="../../static/react-transition-group.min.js"></script>
+    <script type="text/javascript" src="../../static/popper.min.js"></script>
+    <script type="text/javascript" src="../../static/react-popper.min.js"></script>
+    <!-- Reactstrap -->
+    <script type="text/javascript" src="../../static/reactstrap.full.min.js"></script>
+    
+    <!-- JQuery for posting -->
+    <script src="../../static/jquery-1.11.0.min.js"></script>
+
+    <!-- SocketIO -->
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+
+    <!-- babel for converting the script -->
+    <script src="../../static/babel.min.js"></script>
+
+    <script type="text/babel" charset="utf-8">
+
+      // "Import" the components from Reactstrap
+      const {
+        Alert,
+        Badge,
+        Button,
+        ButtonDropdown,
+        DropdownToggle,
+        DropdownMenu,
+        DropdownItem,
+        ButtonToolbar,
+        Card,
+        CardBody,
+        CardHeader,
+        CardText,
+        Col,
+        Collapse,
+        Container,
+        Form,
+        FormGroup,
+        InputGroup,
+        InputGroupAddon,
+        InputGroupText,
+        Input,
+        ListGroup,
+        ListGroupItem,
+        Row,
+        Table,
+      } = Reactstrap;
+      
+      class LoginPage extends React.Component{
+        constructor (props) {
+          super(props);
+          this.state = {
+            name: "",
+            bottle: "",
+            alreadyExists: false,
+          };
+
+          this.nameChange = this.nameChange.bind(this);
+          this.bottleChange = this.bottleChange.bind(this);
+          this.onSubmit = this.onSubmit.bind(this);
+          this.updateBottle = this.updateBottle.bind(this);
+        }
+
+        nameChange(event) {
+          this.setState({name: event.target.value});
+        }
+
+        bottleChange(event) {
+          this.setState({bottle: event.target.value});
+        }
+        
+        updateBottle() {
+          console.log('updating bottle and takeover')
+          var new_url = "http://192.168.0.121/rating/" + this.state.name.toUpperCase();
+          $.post( "{{ url_for('index') }}",
+                 {"user": this.state.name, "bottle": this.state.bottle, "override": true})
+          window.location = new_url
+        }
+
+        onSubmit() {
+          var new_url = "http://192.168.0.121/rating/" + this.state.name.toUpperCase();
+          $.post( "{{ url_for('index') }}",
+                 {"user": this.state.name, "bottle": this.state.bottle},
+                 function(data) {
+                     if (data == 'already_exists') {
+                        console.log('already exists')
+                        this.setState({alreadyExists: true})
+                     } else {
+                        window.location = new_url
+                     }
+                 }.bind(this)
+          )
+        }
+
+        render() {
+          console.log(this.state.alreadyExists)
+          return(
+            <div>
+              <h1>Welcome to Tasty!</h1>
+              <br />
+              <InputGroup>
+                <InputGroupAddon addonType="prepend">
+                  <InputGroupText>Name</InputGroupText>
+                </InputGroupAddon>
+                <Input type="text" value={this.state.name} onChange={this.nameChange}/>
+              </InputGroup>
+              <InputGroup>
+                <InputGroupAddon addonType="prepend">
+                  <InputGroupText>{{ data['drinkwine']['boxorbottle'] }}</InputGroupText>
+                </InputGroupAddon>
+                <Input type="text" value={this.state.bottle} onChange={this.bottleChange}/>
+              </InputGroup>
+              <br />
+              <Collapse isOpen={!this.state.alreadyExists}>
+              <Row>
+                <Col xs="3"/>
+                <Col xs="6">
+                  <Button size="lg" color="primary" onClick={() => this.onSubmit()}>Join Game</Button>
+                </Col>
+                <Col xs="3"/>
+              </Row>
+              </Collapse>
+              <Collapse isOpen={this.state.alreadyExists}>
+                <h4>Name Already Exists</h4>
+                <Button size="lg" color="primary"
+                  onClick={() => this.updateBottle()}>Replace {{ data['drinkwine']['boxorbottle'] }} and Take Over Name</Button>
+              </Collapse>
+            </div>
+          )
+        };
+      };
+
+
+      // Render a Reactstrap Button element onto root
+      ReactDOM.render(
+        React.createElement(LoginPage, null),
+        document.getElementById('root')
+      );
+
+    </script>
+  </body>
+</html>
