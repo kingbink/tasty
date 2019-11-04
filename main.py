@@ -3,7 +3,7 @@
 import logging
 logging.basicConfig(filename='tasty.log',
                     format='%(asctime)s - %(process)d-%(levelname)s - %(message)s',
-                    level=logging.DEBUG)
+                    level=logging.WARNING)
 
 from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
@@ -90,7 +90,7 @@ def connect():
 # Pickle is the best, wine.csv will need to build a few other keys based on csv input
 # Last resort is fresh game, and build up everything by scratch
 if os.path.isfile('wine.pickle'):
-    logging.info('Importing wine.pickle')
+    logging.warning('Importing wine.pickle')
     data = pickle.load( open( 'wine.pickle', 'rb') )
 # elif os.path.isfile('wine.csv'):
 #     data['scores'] = pd.read_csv('wine.csv', index_col=0)
@@ -107,7 +107,7 @@ if os.path.isfile('wine.pickle'):
 #     data['bearernames'] = pd.Series('', index=data['scores'].columns)
 else:
     # Create base scores, the rest gets built later
-    logging.info('Creating new data for new game')
+    logging.warning('Creating new data for new game')
     scores = pd.DataFrame(dtype=int)
     w = ['number #{}'.format(x+1) for x in range(bottles)]
     for col in w:
@@ -164,10 +164,12 @@ def settings():
     bobkey = request.form.get('bobkey')
     if bobkey:
         bobvalue = request.form.get('bobvalue')
+        logging.warning('BoB key setting {} to {}'.format(bobkey, bobvalue))
         data['drinkwine'][bobkey] = bobvalue
     
     newb = request.form.get('bottleCount')
     if newb:
+        logging.warning("New bottle count to {}".format(newb))
         newb = int(newb)
         if len(data['scores'].columns) < newb:
             # reset donelist as everyone has new bottles
@@ -188,6 +190,7 @@ def settings():
     if winenum:
         winename = request.form.get('value')
         if winename:
+            logging.warning("Mapping wine {} to {}".format(winenum, winename))
             #print('WineNum: WineName -> {}:{}'.format(winenum, winename))
             data['winenames'][int(winenum)] = str(winename)
             data['bearernames'][int(winenum)] = data['bottletoname'][winename]
@@ -202,6 +205,7 @@ def settings():
     donename = request.form.get('doneName')
     
     if donename:
+        logging.warning("Settings page toggle {} Done status".format(donename))
         if donetoggle == "false":
             data['donelist'][donename] = 0
         else:
@@ -209,6 +213,7 @@ def settings():
         
     auditdone = request.form.get('auditDone')
     if auditdone != None:
+        logging.warning('Settings page toggling audit')
         #print(auditdone)
         # seems to be reverse of expected?
         if auditdone == "false":
@@ -217,6 +222,7 @@ def settings():
             data['auditdone'] = False
 
     if len(data['scores']) >= 1:
+        logging.warning("Settings Page save_csv()")
         save_csv()
     return render_template('settings.html', data=data)
 
@@ -224,7 +230,7 @@ def settings():
 @app.route('/', methods=['GET', 'POST'])
 def index():
     global data
-    logging.info('React Login Page Entered')
+    logging.warning('React Login Page Entered')
     
     name = None
     bottle = None
@@ -237,28 +243,28 @@ def index():
         bottle = bottle.title()
         if bottle == '':
             bottle = '{}_came_empty_handed'.format(name)
-        logging.info('{} is joining the game with bottle {}'.format(name, bottle))
+        logging.warning('{} is joining the game with bottle {}'.format(name, bottle))
         if len(data['scores']) == 1 and data['scores'].index == 'mrmagoo':
             data['scores'] = data['scores'].drop(index='mrmagoo')
             data['donelist'] = data['donelist'].drop(index='mrmagoo')
         if data['scores'].index.contains(name):
-            logging.info('Player already exists')
+            logging.warning('Player already exists')
             override_name = request.form.get('override')
             if override_name == "true":
-                logging.debug('Taking over {} with new {}'.format(name, bottle))
+                logging.warning('Taking over {} with new {}'.format(name, bottle))
                 for k,v in data['bottletoname'].items():
                     if v == name:
-                        logging.info('Removing {}'.format(k))
+                        logging.warning('Removing {}'.format(k))
                         del data['bottletoname'][k]
                     if k == bottle:
-                        logging.info('Duplicate {} bottle, appending name {}'.format(bottle, name))
+                        logging.warning('Duplicate {} bottle, appending name {}'.format(bottle, name))
                         bottle += '_{}'.format(name)
                 data['bottletoname'][bottle] = name
                 save_csv()
                 return redirect(url_for('rating', user=name), 301)
             return('already_exists')
         else:
-            logging.info("Adding new player")
+            logging.warning("Adding new player")
             newd = pd.DataFrame([[0 for x in range(len(data['scores'].columns))]],
                 columns=data['scores'].columns, index=[name])
             data['scores'] = data['scores'].append(newd)
@@ -331,6 +337,7 @@ def rating(user=None):
 
     if data['scores'].index.contains(user):
         if reset == 'reset':
+            logging.warning("{} resetting number {}".format(user, num))
             #print("RESET wine {}".format(num))
             if num in data['notes'][user]:
                 del data['notes'][user][num]
@@ -341,32 +348,37 @@ def rating(user=None):
             return render_template('tasting.html', data=data, user=user)
         else:
             if notes:
+                logging.warning("{} adding notes to {}".format(user, num))
                 data['notes'][user][num] = notes
                 #data['randomnotes'].append(notes)
                 save_csv()
                 return render_template('tasting.html', data=data, user=user)
             
             if email != None:
+                logging.warning('{} emailing'.format(user))
                 # print('Emailing {} for user {}'.format(email, user))
                 winner_data, summary_data = summary(user)
                 sent_email = send_email(email, summary_data, winner_data)
-                print("Was email sent? {}".format(sent_email))
+                logging.warning("Was email sent? {}".format(sent_email))
                 data['emailsent'][user] = sent_email
                 save_csv()
                 return render_template('tasting.html', data=data, user=user)
             
             if num == None or score == None:
                 if done:
+                    logging.warning('{} is all done'.format(user))
                     data['donelist'][user] = done
                     save_csv()
                 return render_template('tasting.html', data=data, user=user)
             
             if score == "Mine":
+                logging.warning('{} thinks {} is theirs'.format(user, num))
                 data['myguess'][user] = num
                 save_csv()
                 return render_template('tasting.html', data=data, user=user)
             else:
                 score = int(score)
+                logging.warning("{} rates {} with a {}".format(user, num, score))
                 # These checks are likely irrelevent 
                 if num <= data['bottles']:
                     data['scores'].ix[str(user), num] = score
@@ -379,6 +391,7 @@ def rating(user=None):
         
         # From here on likely is not called 
         if num <= data['bottles']:
+            logging.error("Why did I get here?")
             data['scores'].ix[str(user), num] = score
             #data['scores'].loc[str(user)][num] = score
             save_csv()
@@ -388,6 +401,7 @@ def rating(user=None):
             return render_template('tasting.html', data=data, user=user)
 
         if num > int(bottles):
+            logging.error("Number rated:{} should never be greater than total bottles available:{}".format(num, bottles))
             return "too many bottles {} out of {}\n{}".format(int(num), bottles, tabulate.tabulate(data['scores'], headers='keys', tablefmt='html'))
         
         #print(data)
@@ -467,7 +481,7 @@ def results():
 
 
 def save_csv():
-    logging.info('Saving Data...')
+    logging.warning('Saving Data...')
     global data
     global loaded_notes_list
     #print("save_csv start")
@@ -664,15 +678,15 @@ def save_csv():
     # and finally, save to disk
     #print("writing data: {}".format(data))
     #data['scores'].to_csv('wine.csv')
-    logging.info('Numbers Crunched')
+    logging.warning('Numbers Crunched')
     pickle.dump( data, open( 'wine.pickle', 'wb' ) )
-    logging.info('Pickle Saved')
+    logging.warning('Pickle Saved')
     
     
     sendUpdate()
 
 def sendUpdate():
-    logging.info('Sending Update...')
+    logging.warning('Sending Update...')
     global data
     logging.debug('Total Data: {}'.format(data))
     #print("sendUpdate")
@@ -705,7 +719,7 @@ def sendUpdate():
     }
     #print(dto)
     socketio.emit('my_response', dto)
-    logging.info('Socket Emit Done')
+    logging.warning('Socket Emit Done')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=True, threaded=True)
+    app.run(host='0.0.0.0', port=80, debug=False, threaded=True)
