@@ -125,7 +125,7 @@
     const optionsH = {
       legend: {
         labels: {
-          fontSize: 30
+          fontSize: 24
         }
       },
       scales: {
@@ -340,6 +340,9 @@
         
         this.state = {
           page: 0,
+          prevPage: 0,
+          randomImg: "",
+          randomNote: "",
           gameState: {{ data['gamestate']|tojson }},
           eatordrink: {{ data['drinkwine']['eatordrink']|tojson }},
           boxorbottle: {{ data['drinkwine']['boxorbottle']|tojson }},
@@ -693,19 +696,41 @@
           }
         });
       };
-      render() {
-        console.log(this.state.page);
-        var randomNote1 = this.state.randomNotes[Math.floor(Math.random()*this.state.randomNotes.length)];
-        var randomNote2 = this.state.randomNotes[Math.floor(Math.random()*this.state.randomNotes.length)];
-        var randomNote3 = this.state.randomNotes[Math.floor(Math.random()*this.state.randomNotes.length)];
       
+      updateNote() {
+        var newRandomNote = this.state.randomNotes[Math.floor(Math.random()*this.state.randomNotes.length)];
+        
         var wineImages = ['../../static/wineclink.jpg',
                           '../../static/wineswirl.jpg',
                           '../../static/winevariety.jpg',
                           '../../static/winebike.jpg',
                           '../../static/winepour.jpg',
                           '../../static/winetilt.jpg',
-                          '../../static/winetype.jpg'];
+                          '../../static/winetype.jpg',
+                          '../../static/thisiswhite.gif',
+                          '../../static/topoff.gif',
+                          '../../static/tyrionsmirk.gif',
+                          '../../static/reallythink.jpg',
+                          '../../static/mixing.gif',
+                          '../../static/swig.gif',
+                          '../../static/murry.gif',
+                          '../../static/articgintonic.gif',
+                          '../../static/toast.gif',
+                          '../../static/classytasting.jpg',
+                          '../../static/fresh.jpeg'];
+        var newRandomImg = wineImages[Math.floor(Math.random()*wineImages.length)];
+        
+        this.setState({
+          randomImg: newRandomImg,
+          randomNote: newRandomNote,
+        })
+      }
+
+      render() {
+        if (this.state.page != this.state.prevPage){
+          var randomImg, randomNote = this.updateNote();
+          this.setState({prevPage: this.state.page})
+        }
 
         let results;
         if (this.state.gameState == 'welcome') {
@@ -755,25 +780,15 @@
               <Collapse isOpen={this.state.page === 6}>
                 <Row>
                   <Col xs="4">
-                    <Card body className="text-center">
-                      <CardImg src={wineImages[Math.floor(Math.random()*wineImages.length)]} />
-                      <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
-                      <CardText>{randomNote1}</CardText>
-                    </Card>
                   </Col>
                   <Col xs="4">
                     <Card body className="text-center">
                       <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
-                      <CardText>{randomNote2}</CardText>
-                      <CardImg src={wineImages[Math.floor(Math.random()*wineImages.length)]} />
+                      <CardText>{this.state.randomNote}</CardText>
+                      <CardImg src={this.state.randomImg} />
                     </Card>
                   </Col>
                   <Col xs="4">
-                    <Card body className="text-center">
-                      <CardImg src={wineImages[Math.floor(Math.random()*wineImages.length)]} />
-                      <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
-                      <CardText>{randomNote3}</CardText>
-                    </Card>
                   </Col>
                 </Row>
               </Collapse>
@@ -805,25 +820,15 @@
               <Collapse isOpen={this.state.page === 5}>
                 <Row>
                   <Col xs="4">
-                    <Card body className="text-center">
-                      <CardImg src={wineImages[Math.floor(Math.random()*wineImages.length)]} />
-                      <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
-                      <CardText>{randomNote1}</CardText>
-                    </Card>
                   </Col>
                   <Col xs="4">
                     <Card body className="text-center">
                       <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
-                      <CardText>{randomNote2}</CardText>
-                      <CardImg src={wineImages[Math.floor(Math.random()*wineImages.length)]} />
+                      <CardText>{this.state.randomNote}</CardText>
+                      <CardImg src={this.state.randomImg} />
                     </Card>
                   </Col>
                   <Col xs="4">
-                    <Card body className="text-center">
-                      <CardImg src={wineImages[Math.floor(Math.random()*wineImages.length)]} />
-                      <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
-                      <CardText>{randomNote3}</CardText>
-                    </Card>
                   </Col>
                 </Row>
               </Collapse>
@@ -922,25 +927,15 @@
               <Collapse isOpen={this.state.page === 21}>
                 <Row>
                   <Col xs="4">
-                    <Card body className="text-center">
-                      <CardImg src={wineImages[Math.floor(Math.random()*wineImages.length)]} />
-                      <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
-                      <CardText>{randomNote1}</CardText>
-                    </Card>
                   </Col>
                   <Col xs="4">
                     <Card body className="text-center">
                       <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
-                      <CardText>{randomNote2}</CardText>
-                      <CardImg src={wineImages[Math.floor(Math.random()*wineImages.length)]} />
+                      <CardText>{this.state.randomNote}</CardText>
+                      <CardImg src={this.state.randomImg} />
                     </Card>
                   </Col>
                   <Col xs="4">
-                    <Card body className="text-center">
-                      <CardImg src={wineImages[Math.floor(Math.random()*wineImages.length)]} />
-                      <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
-                      <CardText>{randomNote3}</CardText>
-                    </Card>
                   </Col>
                 </Row>
               </Collapse>
@@ -973,7 +968,7 @@
           return (
             <div>
               <ListGroupItem>
-                <h3><Badge color={this.props.goodbad === "0" ? "danger" : "success"}>{this.props.drinkerName}:</Badge> {this.props.buddyList}</h3>
+                <h4><Badge color={this.props.goodbad === "0" ? "danger" : "success"}>{this.props.drinkerName}:</Badge> {this.props.buddyList}</h4>
               </ListGroupItem>
             </div>
           )

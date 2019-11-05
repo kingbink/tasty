@@ -79,7 +79,12 @@ socketio = SocketIO(app, async_mode=None)
 data = {}
 loaded_notes_list = ['This smells like cheese, but a seriously good cheese',
                      'What?!? Who brought this?',
-                     'Yummy in my tummy!',]
+                     'Yummy in my tummy!',
+                     'Come on people!?!?, add some notes',
+                     'Inconceivable',
+                     "How about you, what's your favorite color?",
+                     "Feeling Classy",
+                     ]
 
 
 @socketio.on('connect')
