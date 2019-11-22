@@ -72,6 +72,7 @@ if os.path.isfile('wine.pickle'):
     
     if sum_name == None:
         print('All Scores: \n{}\n'.format(data['scores']))
+        print('Buddies Table: \n{}\n'.format(data['buddies']))
         print('Wine Names: \n{}\n'.format(data['winenames']))
         print('bearernames: \n{}\n'.format(data['bearernames']))
         # if 'myguess' in data:

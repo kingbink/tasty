@@ -607,7 +607,9 @@ def save_csv():
         for row in buddies.index:
             for col in buddies.columns:
                 #print('row {} - col {}'.format(row[0],col[0]))
-                if row[0] != col[0]:
+                if row[0] == col[0]:
+                    buddies.ix[row, col] = None
+                else:
                     for wine in clipscores:
                         score_diff = abs(clipscores[wine].loc[row] - clipscores[wine].loc[col])
                         buddies.ix[row, col] = buddies.ix[row, col] + score_diff
@@ -618,14 +620,16 @@ def save_csv():
         
         buddy_dict_good = {}
         buddy_dict_bad = {}
-        good_bar = len(wineprogress) * 1.1
-        bad_bar = len(wineprogress) * 3
+        #good_bar = len(wineprogress) * 1.1
+        #bad_bar = len(wineprogress) * 2.5
         for namecnt in range(len(data['buddies'].columns)):
+            good_bar = data['buddies'].iloc[namecnt].min()
+            bad_bar = data['buddies'].iloc[namecnt].max()
             buddy_dict_good[data['buddies'].columns[namecnt][0]] = []
             buddy_dict_bad[data['buddies'].columns[namecnt][0]] = []
             for bud, diff in data['buddies'].iloc[namecnt].iteritems():
                 if bud[0] != data['buddies'].columns[namecnt][0]:
-                    if diff < good_bar:
+                    if diff <= good_bar:
                         buddy_dict_good[data['buddies'].columns[namecnt][0]].append(bud[0])
                     elif diff >= bad_bar:
                         buddy_dict_bad[data['buddies'].columns[namecnt][0]].append(bud[0])
@@ -757,4 +761,4 @@ def sendUpdate():
     logging.warning('Socket Emit Done')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=True, threaded=True)
+    app.run(host='0.0.0.0', port=80, debug=False, threaded=True)
