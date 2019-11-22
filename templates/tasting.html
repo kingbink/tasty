@@ -347,6 +347,13 @@
                       </FormGroup>
                     </Form>
                   </ListGroupItem>
+                  <Collapse isOpen={this.state.notes === this.props.myNotes[this.props.wineNum] ? false : true}>
+                    <Row>
+                      <Col xs="3"/>
+                      <Col xs="6"><h5>Close to Save Notes</h5></Col>
+                      <Col xs="3"/>
+                    </Row>
+                  </Collapse>
                 </Collapse>
               </ListGroup>
             </ListGroupItem>

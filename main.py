@@ -210,9 +210,8 @@ def settings():
         houselist = housebottles.split(',')
         c = 1
         for b in houselist:
-            data['bottletoname'][b] = 'HouseBrought_{}'.format(c)
+            data['bottletoname'][b.strip()] = 'HouseBrought_{}'.format(c)
             c += 1
-        print(data['bottletoname'])
         save_csv()
         
     winenum = request.form.get('wineNameNum')
@@ -273,8 +272,8 @@ def index():
     bottle = request.form.get('bottle')
     
     if name:
-        name = name.upper()
-        bottle = bottle.title()
+        name = name.upper().strip()
+        bottle = bottle.title().strip()
         if bottle == '':
             bottle = '{}_came_empty_handed'.format(name)
         logging.warning('{} is joining the game with bottle {}'.format(name, bottle))
@@ -382,7 +381,7 @@ def rating(user=None):
             return render_template('tasting.html', data=data, user=user)
         else:
             if notes:
-                notescleaned = re.sub(u"(\u2018|\u2019)", "'", data['notes'][name][cnt])
+                notescleaned = re.sub(u"(\u2018|\u2019)", "'", notes)
                 logging.warning("{} adding notes to {}".format(user, num))
                 data['notes'][user][num] = notescleaned
                 #data['randomnotes'].append(notes)
@@ -758,4 +757,4 @@ def sendUpdate():
     logging.warning('Socket Emit Done')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=False, threaded=True)
+    app.run(host='0.0.0.0', port=80, debug=True, threaded=True)
