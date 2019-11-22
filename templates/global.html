@@ -339,6 +339,7 @@
         super(props);
         
         this.state = {
+          rotateTime: {{ data['rotatetime'] }},
           page: 0,
           prevPage: 0,
           randomImg: "",
@@ -548,41 +549,41 @@
         this.nextPage = this.nextPage.bind(this);
         this.updateData = this.updateData.bind(this);
         
-        setInterval(this.nextPage, 22 * 1000);
+        setInterval(this.nextPage, this.state.rotateTime * 1000);
         setInterval(function(){ window.scrollBy(0,1); }, 25);
       };
       
       nextPage () {
         window.scrollTo(0,0);
         if (this.state.gameState == 'welcome') {
-          this.setState({page: (this.state.page + 1) % 2 });
+          this.setState({page: (this.state.page + 1) % 3 });
         } else if (this.state.gameState == 'tasting') {
-          this.setState({page: (this.state.page + 1) % 7 });
+          this.setState({page: (this.state.page + 1) % 8 });
         } else if (this.state.gameState == 'audit') {
-          this.setState({page: (this.state.page + 1) % 6 });
+          this.setState({page: (this.state.page + 1) % 7 });
         } else if ((this.state.gameState == 'winLose') && (this.state.tieWinner === 1) && (this.state.tieLoser === 1)) {
-          this.setState({page: (this.state.page + 1) % 22 });
+          this.setState({page: (this.state.page + 1) % 24 });
         } else if ((this.state.gameState == 'winLose') && (this.state.tieLoser === 1)) {
           var skipvalue = 0;
           const skiplist = [0];
           if (skiplist.includes(this.state.page)) {
             skipvalue = 2;
           }
-          this.setState({page: (this.state.page + 1 + skipvalue) % 22 });
+          this.setState({page: (this.state.page + 1 + skipvalue) % 24 });
         } else if ((this.state.gameState == 'winLose') && (this.state.tieWinner === 1)) {
           var skipvalue = 0;
           const skiplist = [6];
           if (skiplist.includes(this.state.page)) {
             skipvalue = 2;
           }
-          this.setState({page: (this.state.page + 1 + skipvalue) % 22 });
+          this.setState({page: (this.state.page + 1 + skipvalue) % 24 });
         } else if (this.state.gameState == 'winLose') {
           var skipvalue = 0;
           const skiplist = [0,6];
           if (skiplist.includes(this.state.page)) {
             skipvalue = 2;
           }
-          this.setState({page: (this.state.page + 1 + skipvalue) % 22 });
+          this.setState({page: (this.state.page + 1 + skipvalue) % 24 });
         }
       }
       
@@ -602,6 +603,7 @@
 
         this.setState({
           gameState: data.gamestate,
+          rotateTime: data.rotatetime,
           drinkerCnt: data.drinkercnt,
           eatordrink: data.bob.eatordrink,
           boxorbottle: data.bob.boxorbottle,
@@ -700,14 +702,7 @@
       updateNote() {
         var newRandomNote = this.state.randomNotes[Math.floor(Math.random()*this.state.randomNotes.length)];
         
-        var wineImages = ['../../static/wineclink.jpg',
-                          '../../static/wineswirl.jpg',
-                          '../../static/winevariety.jpg',
-                          '../../static/winebike.jpg',
-                          '../../static/winepour.jpg',
-                          '../../static/winetilt.jpg',
-                          '../../static/winetype.jpg',
-                          '../../static/thisiswhite.gif',
+        var wineImages = ['../../static/thisiswhite.gif',
                           '../../static/topoff.gif',
                           '../../static/tyrionsmirk.gif',
                           '../../static/reallythink.jpg',
@@ -717,7 +712,35 @@
                           '../../static/articgintonic.gif',
                           '../../static/toast.gif',
                           '../../static/classytasting.jpg',
-                          '../../static/fresh.jpeg'];
+                          '../../static/fresh.jpeg',
+                          '../../static/nopespit.gif',
+                          '../../static/measuringcup.gif',
+                          '../../static/howboutno.gif',
+                          '../../static/dislike.gif',
+                          '../../static/nodoubt.gif',
+                          '../../static/dudeopinion.gif',
+                          '../../static/carreyconfused.gif',
+                          '../../static/martinthinking.gif',
+                          '../../static/piesogood.gif',
+                          '../../static/lucyshrug.gif',
+                          '../../static/allshrugs.gif',
+                          '../../static/nope.gif',
+                          '../../static/sassyno.gif',
+                          '../../static/bubblebath.gif',
+                          '../../static/dryheave.gif',
+                          '../../static/likeitalot.gif',
+                          '../../static/southparkdisgusting.gif',
+                          '../../static/carltondance.gif',
+                          '../../static/elf.gif',
+                          '../../static/elmo.gif',
+                          '../../static/nacholibre.gif',
+                          '../../static/kermit.gif',
+                          '../../static/chardeemacdennis.gif',
+                          '../../static/bobpair.gif',
+                          '../../static/renwine.gif',
+                          '../../static/babyclassy.gif',
+                          '../../static/winespit.gif'
+                          ];
         var newRandomImg = wineImages[Math.floor(Math.random()*wineImages.length)];
         
         this.setState({
@@ -731,24 +754,28 @@
           var randomImg, randomNote = this.updateNote();
           this.setState({prevPage: this.state.page})
         }
+        
 
         let results;
         if (this.state.gameState == 'welcome') {
           return (
             <div>
             <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
-            <h1>Welcome to Blind Tasty</h1>
-            <br />
-            <h2>http://{{ myip }}</h2>
-            <br />
-            <h4>Open a browser on your phone and login with your name and {this.state.boxorbottle} you brought</h4>
-            <Collapse isOpen={this.state.page === 0}>
-              <Radar data={this.state.drinkersPlaying} options={optionsPolar} redraw/>
-            </Collapse>
-            <Collapse isOpen={this.state.page === 1}>
+              <h1>Welcome to Blind Tasty</h1>
               <br />
-              <h1>Your name and {this.state.boxorbottle} you enter will be used to display winners and ratings</h1>
-            </Collapse>
+              <h2>http://{{ myip }}</h2>
+              <br />
+              <h4>Open a browser on your phone and login with your name and {this.state.boxorbottle} you brought</h4>
+              <Collapse isOpen={this.state.page === 0}>
+                <Radar data={this.state.drinkersPlaying} options={optionsPolar} redraw/>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 1}>
+                <br />
+                <h1>Your name and {this.state.boxorbottle} you enter will be used to display winners and ratings, so choose wisely!</h1>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 2}>
+                <h1>Get ready to enjoy {this.state.eatordrink} some {this.state.boxorbottle}s of {this.state.foodorbooze}</h1>
+              </Collapse>
             </Container>
             </div>
           )
@@ -768,27 +795,42 @@
                 <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
               </Collapse>
               <Collapse isOpen={this.state.page === 3}>
-                <h2>Good {this.state.eatordrink} Buddies</h2>
-                <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
-              </Collapse>
-              <Collapse isOpen={this.state.page === 4}>
-                <Bubble data={this.state.bubbleWines} options={optionsNone} />
-              </Collapse>
-              <Collapse isOpen={this.state.page === 5}>
-                <Bubble data={this.state.guessWines} options={options} />
-              </Collapse>
-              <Collapse isOpen={this.state.page === 6}>
                 <Row>
-                  <Col xs="4">
+                  <Col xs="3">
                   </Col>
-                  <Col xs="4">
+                  <Col xs="6">
                     <Card body className="text-center">
                       <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
                       <CardText>{this.state.randomNote}</CardText>
                       <CardImg src={this.state.randomImg} />
                     </Card>
                   </Col>
-                  <Col xs="4">
+                  <Col xs="3">
+                  </Col>
+                </Row>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 4}>
+                <h2>Good {this.state.eatordrink} Buddies</h2>
+                <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 5}>
+                <Bubble data={this.state.bubbleWines} options={optionsNone} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 6}>
+                <Bubble data={this.state.guessWines} options={options} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 7}>
+                <Row>
+                  <Col xs="3">
+                  </Col>
+                  <Col xs="6">
+                    <Card body className="text-center">
+                      <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
+                      <CardText>{this.state.randomNote}</CardText>
+                      <CardImg src={this.state.randomImg} />
+                    </Card>
+                  </Col>
+                  <Col xs="3">
                   </Col>
                 </Row>
               </Collapse>
@@ -810,25 +852,40 @@
                 <HorizontalBar data={this.state.drinkerTotals} options={optionsH}/>
               </Collapse>
               <Collapse isOpen={this.state.page === 3}>
-                <h2>Bad {this.state.eatordrink} Buddies</h2>
-                <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
-              </Collapse>
-              <Collapse isOpen={this.state.page === 4}>
-                <h2>Good {this.state.eatordrink} Buddies</h2>
-                <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
-              </Collapse>
-              <Collapse isOpen={this.state.page === 5}>
                 <Row>
-                  <Col xs="4">
+                  <Col xs="3">
                   </Col>
-                  <Col xs="4">
+                  <Col xs="6">
                     <Card body className="text-center">
                       <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
                       <CardText>{this.state.randomNote}</CardText>
                       <CardImg src={this.state.randomImg} />
                     </Card>
                   </Col>
-                  <Col xs="4">
+                  <Col xs="3">
+                  </Col>
+                </Row>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 4}>
+                <h2>Bad {this.state.eatordrink} Buddies</h2>
+                <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 5}>
+                <h2>Good {this.state.eatordrink} Buddies</h2>
+                <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 6}>
+                <Row>
+                  <Col xs="3">
+                  </Col>
+                  <Col xs="6">
+                    <Card body className="text-center">
+                      <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
+                      <CardText>{this.state.randomNote}</CardText>
+                      <CardImg src={this.state.randomImg} />
+                    </Card>
+                  </Col>
+                  <Col xs="3">
                   </Col>
                 </Row>
               </Collapse>
@@ -898,44 +955,74 @@
                 <Bar data={this.state.winedataNames} options={optionsFull} />
               </Collapse>
               <Collapse isOpen={this.state.page === 13}>
-                <HorizontalBar data={this.state.drinkerTotals} options={optionsH} />
-              </Collapse>
-              <Collapse isOpen={this.state.page === 14}>
-                <HorizontalBar data={this.state.drinkerTotals} options={optionsH} />
-              </Collapse>
-              <Collapse isOpen={this.state.page === 15}>
-                <h2>Good Drinking Buddies</h2>
-                <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
-              </Collapse>
-              <Collapse isOpen={this.state.page === 16}>
-                <h2>Bad {this.state.eatordrink} Buddies</h2>
-                <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
-              </Collapse>
-              <Collapse isOpen={this.state.page === 17}>
-                <h2>Good {this.state.eatordrink} Buddies</h2>
-                <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
-              </Collapse>
-              <Collapse isOpen={this.state.page === 18}>
-                <Bar data={this.state.myWineScore} options={optionsFull} />
-              </Collapse>
-              <Collapse isOpen={this.state.page === 19}>
-                <Bar data={this.state.myWineScore} options={optionsFull} />
-              </Collapse>
-              <Collapse isOpen={this.state.page === 20}>
-                <Bar data={this.state.myWineScore} options={optionsFull} />
-              </Collapse>
-              <Collapse isOpen={this.state.page === 21}>
                 <Row>
-                  <Col xs="4">
+                  <Col xs="3">
                   </Col>
-                  <Col xs="4">
+                  <Col xs="6">
                     <Card body className="text-center">
                       <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
                       <CardText>{this.state.randomNote}</CardText>
                       <CardImg src={this.state.randomImg} />
                     </Card>
                   </Col>
-                  <Col xs="4">
+                  <Col xs="3">
+                  </Col>
+                </Row>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 14}>
+                <HorizontalBar data={this.state.drinkerTotals} options={optionsH} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 15}>
+                <HorizontalBar data={this.state.drinkerTotals} options={optionsH} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 16}>
+                <h2>Good {this.state.eatordrink} Buddies</h2>
+                <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 17}>
+                <h2>Bad {this.state.eatordrink} Buddies</h2>
+                <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 18}>
+                <h2>Good {this.state.eatordrink} Buddies</h2>
+                <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 19}>
+                <Row>
+                  <Col xs="3">
+                  </Col>
+                  <Col xs="6">
+                    <Card body className="text-center">
+                      <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
+                      <CardText>{this.state.randomNote}</CardText>
+                      <CardImg src={this.state.randomImg} />
+                    </Card>
+                  </Col>
+                  <Col xs="3">
+                  </Col>
+                </Row>
+              </Collapse>
+              <Collapse isOpen={this.state.page === 20}>
+                <Bar data={this.state.myWineScore} options={optionsFull} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 21}>
+                <Bar data={this.state.myWineScore} options={optionsFull} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 22}>
+                <Bar data={this.state.myWineScore} options={optionsFull} />
+              </Collapse>
+              <Collapse isOpen={this.state.page === 23}>
+                <Row>
+                  <Col xs="3">
+                  </Col>
+                  <Col xs="6">
+                    <Card body className="text-center">
+                      <CardTitle>{this.state.boxorbottle} of {this.state.foodorbooze} Note:</CardTitle>
+                      <CardText>{this.state.randomNote}</CardText>
+                      <CardImg src={this.state.randomImg} />
+                    </Card>
+                  </Col>
+                  <Col xs="3">
                   </Col>
                 </Row>
               </Collapse>
@@ -968,6 +1055,7 @@
           return (
             <div>
               <ListGroupItem>
+                <h6>{this.props.goodbad === "0" ? "BAD" : "Good"} Buddies </h6>
                 <h4><Badge color={this.props.goodbad === "0" ? "danger" : "success"}>{this.props.drinkerName}:</Badge> {this.props.buddyList}</h4>
               </ListGroupItem>
             </div>

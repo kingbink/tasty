@@ -5,6 +5,7 @@ import numpy as np
 import os
 import pandas as pd
 import pickle
+import re
 from collections import OrderedDict
 
 parser = argparse.ArgumentParser()
@@ -32,7 +33,8 @@ if os.path.isfile('wine.pickle'):
                     if data['myguess'][name] == cnt:
                         new_s[name][data['winenames'].index[w]]['guessed'] = 'My Guess'
                     if cnt in data['notes'][name]:
-                        new_s[name][data['winenames'].index[w]]['notes'] = data['notes'][name][cnt]
+                        notes = re.sub(u"(\u2018|\u2019)", "'", data['notes'][name][cnt])
+                        new_s[name][data['winenames'].index[w]]['notes'] = notes
                 else:
                     new_s[name][data['winenames'][w]] = {'rating': str(s[name][data['winenames'].index[w]])}
                     if data['bottletoname'][data['winenames'][w]] == name:
@@ -40,7 +42,8 @@ if os.path.isfile('wine.pickle'):
                     if data['myguess'][name] == cnt:
                         new_s[name][data['winenames'][w]]['guessed'] = 'My Guess'
                     if cnt in data['notes'][name]:
-                        new_s[name][data['winenames'][w]]['notes'] = data['notes'][name][cnt]
+                        notes = re.sub(u"(\u2018|\u2019)", "'", data['notes'][name][cnt])
+                        new_s[name][data['winenames'][w]]['notes'] = notes
                 cnt += 1
     
     w = data['scores'].sum().sort_values().index[::-1]

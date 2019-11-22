@@ -209,6 +209,82 @@
         };
       };
       
+      class HouseBrought extends React.Component{
+        constructor (props) {
+          super(props);
+          this.state = {
+            houseBroughtList: {{ data['housebottles']|tojson }},
+          };
+          this.handleChange = this.handleChange.bind(this);
+          this.handleSubmit = this.handleSubmit.bind(this);
+        }
+        
+        handleChange(e) {
+          this.setState({houseBroughtList: event.target.value});
+        }
+        
+        handleSubmit() {
+          $.post( "{{ url_for('settings') }}", {"housebottles": this.state.houseBroughtList})
+        }
+        
+        render() {
+          return (
+            <div>
+              <h3>House Brought {this.props.boxorbottle}s</h3>
+              <InputGroup>                
+                <Input type="text" value={this.state.houseBroughtList} onChange={this.handleChange}
+                />
+                <InputGroupAddon addonType="append">
+                  <Button color="primary" onClick={() => this.handleSubmit()}>Update</Button>
+                </InputGroupAddon>
+                <h6>Comma Seperated List</h6>
+              </InputGroup>
+              <br />
+            </div>
+          );
+        };
+      };
+      
+      class RotateTime extends React.Component{
+        constructor (props) {
+          super(props);
+          this.state = {
+            newRotateTime: this.props.rotateTime,
+          };
+          this.handleChange = this.handleChange.bind(this);
+          this.handleSubmit = this.handleSubmit.bind(this);
+        }
+        
+        handleChange(e) {
+          this.setState({newRotateTime: event.target.value});
+        }
+        
+        handleSubmit(newRotateTime) {
+          this.props.doSubmit(newRotateTime);
+          e.preventDefault();
+        }
+        
+        render() {
+          return (
+            <div>
+              <h3>Page Rotate Speed</h3>
+              <InputGroup>
+                <InputGroupAddon addonType="prepend">
+                  <InputGroupText>Current Rotate Speed (in sec): {this.props.rotateTime}</InputGroupText>
+                </InputGroupAddon>                
+                <Input type="text" value={this.state.newRotateTime} onChange={this.handleChange}
+                />
+                <InputGroupAddon addonType="append">
+                  <Button color="primary" onClick={() => this.props.doSubmit(this.state.newRotateTime)}>Update</Button>
+                </InputGroupAddon>
+                <h6>Requires Global Refresh</h6>
+              </InputGroup>
+              <br />
+            </div>
+          );
+        };
+      };
+      
       class BottleNameGroup extends React.Component{
         render() {
           let wineCntlist = Array(this.props.numWines).fill().map((_,i) => {
@@ -490,6 +566,7 @@
             boxorbottle: {{ data['drinkwine']['boxorbottle']|tojson }},
             foodorbooze: {{ data['drinkwine']['foodorbooze']|tojson }},
             curBottleCount: {{ data['bottles'] }},
+            rotateTime: {{ data['rotatetime'] }},
             bottleCountValue: '',
             wineNameList: {{ data['winenames'].values.tolist()|tojson }},
             bearerNameList: {{ data['bearernames'].values.tolist()|tojson }},
@@ -558,6 +635,13 @@
                    "bobvalue": value
                  })
         }
+        
+        rotateSubmit(newRotateTime) {
+          $.post( "{{ url_for('settings') }}",
+                 {
+                   "rotatetime": newRotateTime,
+                 })
+        }
 
 
         render() {
@@ -585,6 +669,13 @@
                 bottleCountValue={this.state.bottleCountValue}
                 doChange={this.bottleChange}
                 doSubmit={this.bottleSubmit}
+              />
+              <HouseBrought
+                boxorbottle={this.state.boxorbottle}
+              />
+              <RotateTime
+                rotateTime={this.state.rotateTime}
+                doSubmit={this.rotateSubmit}
               />
               <br />
               <BottleNameGroup

@@ -17,6 +17,7 @@ import os
 import pandas as pd
 import pickle
 import random
+import re
 # import tabulate
 from wtforms.validators import InputRequired, Length, AnyOf
 
@@ -42,7 +43,7 @@ from wtforms.validators import InputRequired, Length, AnyOf
 # 
 # myip = get_ip_address('wifi0')
 
-from settings import secret_key, bottles, email_address, email_password
+from settings import secret_key, bottles, email_address, email_password, rotatetime
 # from game import Game
 # game = Game()
 
@@ -127,11 +128,13 @@ else:
     data['donelist']['mrmagoo'] = 0
     data['donelistjson'] = data['donelist'].to_json()
     data['bottles'] = bottles
+    data['rotatetime'] = rotatetime
     # data['state'] = Game.WelcomeState
     data['gamestate'] = 'welcome'
     data['drinkwine'] = {'eatordrink': 'Drinking', 'boxorbottle': "Bottle", 'foodorbooze':'Wine'}
     data['winenames'] = pd.Series('???', index=w)
     data['bottletoname'] = {}
+    data['housebottles'] =''
     data['bearernames'] = pd.Series('', index=w)
     data['auditdone'] = False
     data['winnernames'] = ['brian', 'mona']
@@ -157,7 +160,8 @@ else:
     data['bubplot'] = [{'x':1, 'y':1, 'r':0}]
     data['bubguess'] = [{'x':1, 'y':1, 'r':0}]
     data['emailsent'] = {}
-    data['randomnotes'] = loaded_notes_list    
+    data['randomnotes'] = loaded_notes_list
+    logging.warning(data['rotatetime'])
 
 
 @app.route('/settings', methods=['GET', 'POST'])
@@ -191,6 +195,26 @@ def settings():
                 del data['bearernames'][col]
         data['bottles'] = newb
     
+    housebottles = request.form.get('housebottles')
+    if housebottles:
+        housebottles = re.sub(u"(\u2018|\u2019)", "'", housebottles)
+        logging.warning("House Brought List: {}".format(housebottles))
+        data['housebottles'] = housebottles
+        # Remove all old house bottles
+        re_name = re.compile(u'HouseBrought_')
+        for b,n in data['bottletoname'].items():
+            if re_name.match(n):
+                del data['bottletoname'][b]
+        
+        # Add new list back
+        houselist = housebottles.split(',')
+        c = 1
+        for b in houselist:
+            data['bottletoname'][b] = 'HouseBrought_{}'.format(c)
+            c += 1
+        print(data['bottletoname'])
+        save_csv()
+        
     winenum = request.form.get('wineNameNum')
     if winenum:
         winename = request.form.get('value')
@@ -205,6 +229,11 @@ def settings():
         # winenamebearer = request.form.get('wineNameBearer')
         # if winenamebearer:
         #     data['bearernames'][int(winenum)] = str(winenamebearer)
+    newrotatetime = request.form.get('rotatetime')
+    if newrotatetime:
+        logging.warning("Settings updating page rotate time to {}".format(newrotatetime))
+        data['rotatetime'] = newrotatetime
+        save_csv()
             
     donetoggle = request.form.get('doneToggle')
     donename = request.form.get('doneName')
@@ -353,8 +382,9 @@ def rating(user=None):
             return render_template('tasting.html', data=data, user=user)
         else:
             if notes:
+                notescleaned = re.sub(u"(\u2018|\u2019)", "'", data['notes'][name][cnt])
                 logging.warning("{} adding notes to {}".format(user, num))
-                data['notes'][user][num] = notes
+                data['notes'][user][num] = notescleaned
                 #data['randomnotes'].append(notes)
                 save_csv()
                 return render_template('tasting.html', data=data, user=user)
@@ -589,7 +619,7 @@ def save_csv():
         
         buddy_dict_good = {}
         buddy_dict_bad = {}
-        good_bar = len(wineprogress) * 2
+        good_bar = len(wineprogress) * 1.1
         bad_bar = len(wineprogress) * 3
         for namecnt in range(len(data['buddies'].columns)):
             buddy_dict_good[data['buddies'].columns[namecnt][0]] = []
@@ -649,7 +679,7 @@ def save_csv():
         #if len(data['bearernames']) == len(data['scores']):
         for wine,name in data['bearernames'].iteritems():
             #print('{} - {}'.format(wine,name))
-            if name:
+            if name in data['scores'].index:
                 #print(name)
                 mywinescore[name] = data['scores'].loc[name][wine]
                 #print(mywinescore)
@@ -720,6 +750,7 @@ def sendUpdate():
         "bubguess": data['bubguess'],
         "bob": data['drinkwine'],
         "bottlecount": data['bottles'],
+        "rotatetime": data['rotatetime'],
         "emailsent": data['emailsent']
     }
     #print(dto)

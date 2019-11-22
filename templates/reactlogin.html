@@ -94,7 +94,7 @@
         }
 
         onSubmit(override) {
-          var new_url = "http://192.168.0.121/rating/" + this.state.name.toUpperCase();
+          var new_url = "http://192.168.0.121/rating/" + this.state.name.toUpperCase().trim();
           $.post( "{{ url_for('index') }}",
                  {"user": this.state.name, "bottle": this.state.bottle, "override": override},
                  function(data) {

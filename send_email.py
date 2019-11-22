@@ -53,7 +53,7 @@ def send_email(to_address, summary_data, winner_data):
             if "guessed" in summary_data[name][wine]:
                 html += '<span style="color:#7DA1B1;">  My Guess</span><br>'
             if "notes" in summary_data[name][wine]:
-                html += "Notes: {}<br>".format(summary_data[name][wine]["notes"])
+                html += "Notes: {}<br>".format(re.sub(u"(\u2018|\u2019)", "'", summary_data[name][wine]["notes"]))
             html += "</p>"
     html += "<br><h1>From Winners to Losers</h1>"
     cnt = 1
