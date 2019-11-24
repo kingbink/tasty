@@ -86,7 +86,47 @@ loaded_notes_list = ['This smells like cheese, but a seriously good cheese',
                      "How about you, what's your favorite color?",
                      "Feeling Classy",
                      ]
-
+src_img_list = ['../../static/thisiswhite.gif',
+                '../../static/topoff.gif',
+                '../../static/tyrionsmirk.gif',
+                '../../static/reallythink.jpg',
+                '../../static/mixing.gif',
+                '../../static/swig.gif',
+                '../../static/murry.gif',
+                '../../static/articgintonic.gif',
+                '../../static/toast.gif',
+                '../../static/classytasting.jpg',
+                '../../static/fresh.jpeg',
+                '../../static/nopespit.gif',
+                '../../static/measuringcup.gif',
+                '../../static/howboutno.gif',
+                '../../static/dislike.gif',
+                '../../static/nodoubt.gif',
+                '../../static/dudeopinion.gif',
+                '../../static/carreyconfused.gif',
+                '../../static/martinthinking.gif',
+                '../../static/piesogood.gif',
+                '../../static/lucyshrug.gif',
+                '../../static/allshrugs.gif',
+                '../../static/nope.gif',
+                '../../static/sassyno.gif',
+                '../../static/bubblebath.gif',
+                '../../static/dryheave.gif',
+                '../../static/likeitalot.gif',
+                '../../static/southparkdisgusting.gif',
+                '../../static/carltondance.gif',
+                '../../static/elf.gif',
+                '../../static/elmo.gif',
+                '../../static/nacholibre.gif',
+                '../../static/kermit.gif',
+                '../../static/chardeemacdennis.gif',
+                '../../static/bobpair.gif',
+                '../../static/renwine.gif',
+                '../../static/babyclassy.gif',
+                '../../static/winespit.gif'
+                ]
+cur_img_list = []
+cur_used_notes = []
 
 @socketio.on('connect')
 def connect():
@@ -162,7 +202,9 @@ else:
     data['bubguess'] = [{'x':1, 'y':1, 'r':0}]
     data['emailsent'] = {}
     data['randomnotes'] = loaded_notes_list
-    logging.warning(data['rotatetime'])
+    data['randomnote'] = ''
+    data['randomimg'] = ''
+    data['wineprogress'] = []
 
 
 @app.route('/settings', methods=['GET', 'POST'])
@@ -491,27 +533,13 @@ def summary(user):
     return(new_w, new_s)
     
 
-@app.route('/results', methods=['GET'])
+@app.route('/results', methods=['GET', 'POST'])
 def results():
     global data
     
-    #if (data['state'] == Game.WelcomeState):
-        #print("welcome")
-        #return render_template('welcome.html', data=data)
-    # add best wine, worst wine, most consisten wine, most contreversal,
-    # biggest point person, lowest point person, person with rating closest to order of winners...
-    # make sure to check for tie-breakers
-    # return '<meta http-equiv="refresh" content="8" /><h1>Bottles: {}</h1>\n<h1>Winner</h1>\n{}\n\n<h1>Loser</h1>\n{}\n\n<h1>Gave most points:</h1>\n{}\n\n<h1>Gave least points:</h1>\n{}\n\n<h1>Ranking:</h1>\n{}\n\n<h1>Totals</h1>:\n{}\n\n<h1>TasterTotals:</h1>\n{}\n\n<h1>Wines Max Rating:</h1>\n{}\n\n<h1>Wines Min Rating:</h1>\n{}'.format(
-    #     data['bottles'],
-    #     data['scores'].sum().idxmax(),
-    #     data['scores'].sum().idxmin(),
-    #     data['scores'].sum(axis=1).idxmax(),
-    #     data['scores'].sum(axis=1).idxmin(),
-    #     tabulate.tabulate([data['scores'].sum().rank()], headers='keys', tablefmt='html'),
-    #     tabulate.tabulate(data['scores'].append([data['scores'].sum()]), headers='keys', tablefmt='html'),
-    #     tabulate.tabulate([[data['scores'].sum(axis=1)]], headers='keys', tablefmt='html'),
-    #     tabulate.tabulate([data['scores'].max()], headers='keys', tablefmt='html'),
-    #     tabulate.tabulate([data['scores'].min()], headers='keys', tablefmt='html'))
+    getrandom = request.form.get('getrandom')
+    if getrandom:
+        pickRandom()
     return render_template('global.html', data=data, myip="blindwine.duckdns.org")
 
 
@@ -697,9 +725,14 @@ def save_csv():
             for wine in data['notes'][name]:
                 data['randomnotes'].append(data['notes'][name][wine])
         realnotecnt = len(data['randomnotes'])
-        if realnotecnt <= 6:
+        if realnotecnt < 6:
+            addcnt = random.randrange(0,(6 - realnotecnt))
+            logging.warning("addcnt {}".format(addcnt))
             for n in range(6 - realnotecnt):
-                data['randomnotes'].append(random.choice(loaded_notes_list))
+                data['randomnotes'].append(loaded_notes_list[addcnt])
+                logging.warning("new random notes list".format(data['randomnotes']))
+                addcnt = (addcnt + 1) % len(loaded_notes_list)
+                logging.warning('new addcnt {}'.format(addcnt))
             
         #data['table'] = str(tabulate.tabulate(data['scores'], headers='keys', tablefmt='html'))
         # print("\nTieW {}\nTieL {}\nloser to winner {}\nwines low to high {}\n".format(tie_winner, tie_loser, names_winner, wine_winner))
@@ -726,11 +759,43 @@ def save_csv():
     
     
     sendUpdate()
+    
+def pickRandom():
+    global data
+    global cur_used_notes
+    global src_img_list
+    global cur_img_list
+    
+    if len(cur_img_list) <= 0:
+        cur_img_list = src_img_list
+        
+    logging.debug('Random Img List Length: {}'.format(len(cur_img_list)))
+        
+    randimgc = random.randrange(0,len(cur_img_list))
+    randimg = cur_img_list.pop(randimgc)
+    logging.debug('Random Image Selected: {}'.format(randimg))
+    
+    cur_notes = list(data['randomnotes'])
+    for usednote in cur_used_notes:
+        if usednote in cur_notes:
+            cur_notes.remove(usednote)
+            
+    if len(cur_notes) <= 0:
+        cur_used_notes = []
+        cur_notes = data['randomnotes']
+    randnote = cur_notes[random.randrange(0,len(cur_notes))]
+    cur_used_notes.append(randnote)
+    logging.warning('Random Note List {}: {}'.format(len(cur_notes), cur_notes))
+    logging.warning('Random Note Selected: {}'.format(randnote))
+    data['randomnote'] = randnote
+    data['randomimg'] = randimg
+    sendUpdate()
 
 def sendUpdate():
     logging.warning('Sending Update...')
     global data
     logging.debug('Total Data: {}'.format(data))
+    logging.warning(str(len(data['wineprogress'])))
     #print("sendUpdate")
     dto = {
         "scores": data['scores'].sum().to_json(),
@@ -750,7 +815,6 @@ def sendUpdate():
         "mywinescore": data['mywinescore'],
         "winenames": data['winenames'].to_json(),
         "notes": data['notes'],
-        "randomnotes": data['randomnotes'],
         "bottlenames": data['bottletoname'].keys(),
         "bubplot": data['bubplot'],
         "myguess": data['myguess'],
@@ -758,7 +822,10 @@ def sendUpdate():
         "bob": data['drinkwine'],
         "bottlecount": data['bottles'],
         "rotatetime": data['rotatetime'],
-        "emailsent": data['emailsent']
+        "emailsent": data['emailsent'],
+        "randomimg": data['randomimg'],
+        "randomnote": data['randomnote'],
+        "progress": str(len(data['wineprogress']))
     }
     #print(dto)
     socketio.emit('my_response', dto)

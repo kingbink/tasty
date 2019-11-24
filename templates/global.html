@@ -342,9 +342,10 @@
           rotateTime: {{ data['rotatetime'] }},
           page: 0,
           prevPage: 0,
-          randomImg: "",
-          randomNote: "",
+          randomImg: {{ data['randomnote']|tojson }},
+          randomNote: {{ data['randomimg']|tojson }},
           gameState: {{ data['gamestate']|tojson }},
+          progress: {{ data['wineprogress']|tojson }},
           eatordrink: {{ data['drinkwine']['eatordrink']|tojson }},
           boxorbottle: {{ data['drinkwine']['boxorbottle']|tojson }},
           foodorbooze: {{ data['drinkwine']['foodorbooze']|tojson }},
@@ -611,6 +612,9 @@
           boxorbottle: data.bob.boxorbottle,
           foodorbooze: data.bob.foodorbooze,
           randomNotes: data.randomnotes,
+          randomNote: data.randomnote,
+          randomImg: data.randomimg,
+          progress: data.progress,
           winedata: {...this.state.winedata,
             labels: Object.keys(scores),
             datasets: [
@@ -751,14 +755,12 @@
           randomNote: newRandomNote,
         })
       }
+      
+      getRandom() {
+        $.post( "{{ url_for('results') }}", {"getrandom": true})
+      }
 
       render() {
-        if (this.state.page != this.state.prevPage){
-          var randomImg, randomNote = this.updateNote();
-          this.setState({prevPage: this.state.page})
-        }
-        
-
         let results;
         if (this.state.gameState == 'welcome') {
           return (
@@ -785,7 +787,7 @@
         } else if (this.state.gameState == 'tasting') {
           return (
             <div>
-            <Container><Row><Col xs="9"></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
+            <Container><Row><Col xs="9"><h4>Now Serving {this.state.boxorbottle} {this.state.progress}</h4></Col><Col xs="3"><Card><CardImg src="../../static/Tasty.png" /></Card></Col></Row>
               <Collapse isOpen={this.state.page === 0}>
                 <Doughnut data={this.state.donutData} options={optionsDonut} />
               </Collapse>
@@ -797,7 +799,7 @@
                 <h2>Worst {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
               </Collapse>
-              <Collapse isOpen={this.state.page === 3}>
+              <Collapse isOpen={this.state.page === 3} onEntering={this.getRandom}>
                 <Row>
                   <Col xs="3">
                   </Col>
@@ -822,7 +824,7 @@
               <Collapse isOpen={this.state.page === 6}>
                 <Bubble data={this.state.guessWines} options={options} />
               </Collapse>
-              <Collapse isOpen={this.state.page === 7}>
+              <Collapse isOpen={this.state.page === 7} onEntering={this.getRandom}>
                 <Row>
                   <Col xs="3">
                   </Col>
