@@ -117,10 +117,8 @@
         render() {
           return (
             <div>
-              <h4>Good Buddies:</h4>
-              <h4>{this.props.goodBuddies.join(" - ")}</h4>
-              <h5>Bad Buddies: </h5>
-              <h5>{this.props.badBuddies.join(" - ")}</h5>
+              <h4>Best Buddies: {this.props.goodBuddies.join(" - ")}</h4>
+              <h5>Worst Buddies: {this.props.badBuddies.join(" - ")}</h5>
             </div>
           )
         }
@@ -264,10 +262,16 @@
 
           this.onClick = this.onClick.bind(this);
           this.resetClick = this.resetClick.bind(this);
+          this.saveNotes = this.saveNotes.bind(this);
           
         }
 
         onClick() {
+          this.setState({ expanded: !this.state.expanded });
+          $.post( "{{ url_for('rating', user=user) }}", {"notes": this.state.notes, "wine": this.props.wineNum});
+        }
+        
+        saveNotes() {
           this.setState({ expanded: !this.state.expanded });
           $.post( "{{ url_for('rating', user=user) }}", {"notes": this.state.notes, "wine": this.props.wineNum});
         }
@@ -311,8 +315,10 @@
           let scoreColor = "";
           if (this.props.currentScore == "0") {
             scoreColor = "danger";
-          } else if (this.props.currentScore <= "4") {
+          } else if (this.props.currentScore <= "3") {
             scoreColor = "secondary";
+          } else if (this.props.currentScore <= "6") {
+            scoreColor = "success";
           } else {
             scoreColor = "primary";
           }
@@ -323,7 +329,7 @@
                   <Row>
                     <Col xs="4"><h6>{this.props.wineNameArray[this.props.wineNum]}</h6></Col>
                     <Col xs="2"><Badge color="primary">{this.props.myNotes[this.props.wineNum] === undefined ? "" : "#"}</Badge></Col>
-                    <Col xs="3"><Badge color="success">{this.props.wineNum === this.props.myWine ? "MyGuess" : ""}</Badge></Col>
+                    <Col xs="3"><Badge color="success">{this.props.wineNum === this.props.myWine ? "Mine" : ""}</Badge></Col>
                     <Col xs="3"><Badge size="lg" color={scoreColor}>{this.props.currentScore}</Badge></Col>
                   </Row>
                 </ListGroupItem>
@@ -346,14 +352,18 @@
                         />
                       </FormGroup>
                     </Form>
+                    <Collapse isOpen={this.state.notes === this.props.myNotes[this.props.wineNum] ? false : true}>
+                      <Row>
+                        <Col xs="3"/>
+                        <Col xs="6">
+                          <Button color="primary" onClick={this.saveNotes}>
+                            Close to Save Notes
+                          </Button>
+                        </Col>
+                        <Col xs="3"/>
+                      </Row>
+                    </Collapse>
                   </ListGroupItem>
-                  <Collapse isOpen={this.state.notes === this.props.myNotes[this.props.wineNum] ? false : true}>
-                    <Row>
-                      <Col xs="3"/>
-                      <Col xs="6"><h5>Close to Save Notes</h5></Col>
-                      <Col xs="3"/>
-                    </Row>
-                  </Collapse>
                 </Collapse>
               </ListGroup>
             </ListGroupItem>
@@ -495,7 +505,7 @@
               } else {
                 notAllScored = 1;
               }
-              if (score > 4) {
+              if (score > 6) {
                 this.state.liked += 1;
               }
             });

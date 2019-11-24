@@ -147,6 +147,7 @@ else:
     data['notes'] = {}
     data['complete'] = {}
     data['complete']['good'] = 0
+    data['complete']['ok'] = 0
     data['complete']['bad'] = 0
     data['complete']['unknown'] = 0
     data['drinkertotals'] = pd.Series([0])
@@ -383,7 +384,7 @@ def rating(user=None):
             if notes:
                 notescleaned = re.sub(u"(\u2018|\u2019)", "'", notes)
                 logging.warning("{} adding notes to {}".format(user, num))
-                data['notes'][user][num] = notescleaned
+                data['notes'][user][num] = notescleaned.strip()
                 #data['randomnotes'].append(notes)
                 save_csv()
                 return render_template('tasting.html', data=data, user=user)
@@ -392,7 +393,7 @@ def rating(user=None):
                 logging.warning('{} emailing'.format(user))
                 # print('Emailing {} for user {}'.format(email, user))
                 winner_data, summary_data = summary(user)
-                sent_email = send_email(email, summary_data, winner_data)
+                sent_email = send_email(email.strip(), summary_data, winner_data)
                 logging.warning("Was email sent? {}".format(sent_email))
                 data['emailsent'][user] = sent_email
                 save_csv()
@@ -546,7 +547,7 @@ def save_csv():
         #buddies = pd.DataFrame(columns=[data['scores'].index], index=[x for x in range(len(data['scores'].index))])
         clipscores = pd.DataFrame()
         wineprogress = []
-        unknown = good = bad = 0
+        unknown = good = ok = bad = 0
         # figure our x:wine# % 4, y:wine#, r:sum of scores
         bubplot = []
         wc = 1
@@ -558,8 +559,10 @@ def save_csv():
             for score in data['scores'][wine]:
                 if score == 0:
                     unknown += 1
-                elif score <= 4:
+                elif score <= 3:
                     bad += 1
+                elif score <= 6:
+                    ok += 1
                 else:
                     good += 1
                 if score > 0:
@@ -581,6 +584,7 @@ def save_csv():
         data['bubplot'] = bubplot
         data['wineprogress'] = wineprogress
         data['complete']['good'] = good
+        data['complete']['ok'] = ok
         data['complete']['bad'] = bad
         data['complete']['unknown'] = unknown
         
@@ -656,7 +660,7 @@ def save_csv():
         #print(bubguess)
         
         # Change state
-        if (len(data['scores'].index) < data['bottles']/2):
+        if (len(data['wineprogress']) < 2):
             #print('welcome')
             # data['state'] = Game.WelcomeState
             data['gamestate'] = 'welcome'

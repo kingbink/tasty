@@ -376,15 +376,17 @@
           donutData: {
             labels: [
               'Bad',
+              'Ok',
               'Good',
               'Unk'
             ],
             datasets: [{
-              data: [0, 0, 100],
+              data: [0, 0, 0, 100],
               backgroundColor: [
                 '#395462',
+                '#7DA1B1',
                 '#701217',
-                '#CCE0DD'
+                '#0F1617'
              ],
             }]
           },
@@ -630,6 +632,7 @@
               {...this.state.donutData.datasets[0],
               data: [
                      data.complete.bad,
+                     data.complete.ok,
                      data.complete.good,
                      data.complete.unknown,
                      ]
@@ -791,7 +794,7 @@
                 <Radar data={this.state.missRaters} options={optionsPolar} redraw/>
               </Collapse>
               <Collapse isOpen={this.state.page === 2}>
-                <h2>Bad {this.state.eatordrink} Buddies</h2>
+                <h2>Worst {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
               </Collapse>
               <Collapse isOpen={this.state.page === 3}>
@@ -810,7 +813,7 @@
                 </Row>
               </Collapse>
               <Collapse isOpen={this.state.page === 4}>
-                <h2>Good {this.state.eatordrink} Buddies</h2>
+                <h2>Best {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
               </Collapse>
               <Collapse isOpen={this.state.page === 5}>
@@ -867,11 +870,11 @@
                 </Row>
               </Collapse>
               <Collapse isOpen={this.state.page === 4}>
-                <h2>Bad {this.state.eatordrink} Buddies</h2>
+                <h2>Worst {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
               </Collapse>
               <Collapse isOpen={this.state.page === 5}>
-                <h2>Good {this.state.eatordrink} Buddies</h2>
+                <h2>Best {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
               </Collapse>
               <Collapse isOpen={this.state.page === 6}>
@@ -976,15 +979,15 @@
                 <HorizontalBar data={this.state.drinkerTotals} options={optionsH} />
               </Collapse>
               <Collapse isOpen={this.state.page === 16}>
-                <h2>Good {this.state.eatordrink} Buddies</h2>
+                <h2>Best {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
               </Collapse>
               <Collapse isOpen={this.state.page === 17}>
-                <h2>Bad {this.state.eatordrink} Buddies</h2>
+                <h2>Worst {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="0" drinkerCnt={this.state.drinkerCnt} buddies={this.state.badBuddies} />
               </Collapse>
               <Collapse isOpen={this.state.page === 18}>
-                <h2>Good {this.state.eatordrink} Buddies</h2>
+                <h2>Best {this.state.eatordrink} Buddies</h2>
                 <BuddyGroups gb="1" drinkerCnt={this.state.drinkerCnt} buddies={this.state.goodBuddies} />
               </Collapse>
               <Collapse isOpen={this.state.page === 19}>
@@ -1055,7 +1058,7 @@
           return (
             <div>
               <ListGroupItem>
-                <h6>{this.props.goodbad === "0" ? "BAD" : "Good"} Buddies </h6>
+                <h6>{this.props.goodbad === "0" ? "Worst" : "Best"} Buddies </h6>
                 <h4><Badge color={this.props.goodbad === "0" ? "danger" : "success"}>{this.props.drinkerName}:</Badge> {this.props.buddyList}</h4>
               </ListGroupItem>
             </div>
